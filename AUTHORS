@@ -1,0 +1,21 @@
+# The libgit2pp AUTHORS file.  Don't be shy.  If you have contributed to this
+# project in some way, send me a patch to add yourself to this file.
+#
+# Everyone deserves credit, including those who haven't added any code.
+# Ideas, clues, and helping out on the mailing lists all count too.
+#
+# This is a blatant ripoff of the fields found in the Linux kernel's CREDITS
+# file.  If we need more data, those fields can always be added later.
+#
+# N = name, E = email, W = web address, D = description, P = PGP info, 
+# S = snailmail address, etc.
+#
+# This file is supposed to be roughly alpha-sorted by the last name, but
+# if you want to hide at the bottom, that's fine by me.  Just clarify
+# your preference when submitting changes to this file.
+
+N: Émilien Kia
+E: emilien.kia@gmail.com
+W: http://www.emilienkia.net/
+D: Initial code
+

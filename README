@@ -1,0 +1,15 @@
+libqgit2
+========
+
+A C++ wrapper for libgit2
+
+Feel free to fork this repository to play with the library but remember it is not the official one.
+
+Currently updated to libgit2 0.17.0.
+
+
+Authoring notes
+===============
+
+This library is largely inspirated from Laszlo Papp's ligqgit2 (https://projects.kde.org/projects/playground/libs/libqgit2/).
+
