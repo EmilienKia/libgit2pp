@@ -68,7 +68,12 @@ std::string Commit::shortMessage(size_t maxLen) const
 	}
 }
 
-time_t Commit::dateTime() const
+std::string Commit::encoding() const
+{
+	return std::string(git_commit_message_encoding(data()));
+}
+
+time_t Commit::time() const
 {
     return git_commit_time(data());
 }
@@ -95,6 +100,11 @@ Tree Commit::tree() const
     return Tree(tree);
 }
 
+OId Commit::treeOId() const
+{
+	return OId(git_commit_tree_oid(data()));
+}
+
 unsigned int Commit::parentCount() const
 {
     return git_commit_parentcount(data());
@@ -106,11 +116,10 @@ Commit Commit::parent(unsigned n) const
     return Commit(parent);
 }
 
-// TODO Only available starting to 0.18.0
-/*OId Commit::parentId(unsigned n) const
+OId Commit::parentOId(unsigned n) const
 {
-    return OId(git_commit_parent_id(data(), n));
-}*/
+    return OId(git_commit_parent_oid(data(), n));
+}
 
 git_commit* Commit::data() const
 {

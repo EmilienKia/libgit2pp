@@ -87,10 +87,21 @@ public:
      */
     std::string shortMessage(size_t maxLen = 80) const;
 
+	/**
+	 * Get the encoding for the message of a commit,
+	 * as a string representing a standard encoding name.
+	 *
+	 * The encoding may be empty if the `encoding` header
+	 * in the commit is missing; in that case UTF-8 is assumed.
+	 *
+	 * @return Message encoding.
+	 */
+	std::string encoding() const;
+
     /**
      * Get the commit time (i.e. committer time) of this commit.
      */
-    time_t dateTime() const;
+    time_t time() const;
 
     /**
      * Get the timezone offset.
@@ -119,8 +130,16 @@ public:
      */
     Tree tree() const;
 
+	/**
+	 * Get the id of the tree pointed to by a commit. This differs from
+	 * Commit::tree() in that no attempts are made to fetch an object
+	 * from the ODB.
+	 */
+	OId treeOId() const;
+
+
     /**
-     * Get the number of parents of this commit
+     * Get the number of parents of this commit.
      */
     unsigned int parentCount() const;
 
@@ -146,8 +165,7 @@ public:
      * @return the OId of the parent commit or an empty OId
      * @throws Exception
      */
-// TODO Not available before 0.18.0
-//    OId parentId(unsigned n) const;
+    OId parentOId(unsigned n) const;
 
     git_commit* data() const;
     const git_commit* constData() const;

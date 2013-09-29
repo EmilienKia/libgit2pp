@@ -244,6 +244,8 @@ public:
     /**
      * Lookup a commit object from a repository.
      *
+	 * @param id Identity of the commit to locate. If the object is
+	 *		an annotated tag it will be peeled back to the commit (complete or short id).
      * @throws Exception
      */
     Commit lookupCommit(const OId& oid) const;
