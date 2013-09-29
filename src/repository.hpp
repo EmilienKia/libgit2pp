@@ -264,14 +264,14 @@ public:
 
     /**
      * Lookup a blob object from a repository.
-     *
+	 * @param id Identity of the blob to locate (complete or short id).
      * @throws Exception
      */
     Blob lookupBlob(const OId& oid) const;
 
     /**
      * Lookup a reference to one of the objects in a repostory.
-     *
+	 * @param id Identifier for the object (complete or short id).
      * @throws Exception
      */
     Object lookupAny(const OId& oid) const;
@@ -355,13 +355,28 @@ public:
      * Read a file from the working folder of a repository
      * and write it to the Object Database as a loose blob
      *
+	 * @param path file from which the blob will be created,
+	 *	relative to the repository's working dir
+	 * @return Created loose blob OId.
      * @throws Exception
      */
     OId createBlobFromFile(const std::string& path);
 
     /**
+	 * Read a file from the filesystem and write its content
+	 * to the Object Database as a loose blob
+     *
+	 * @param path file from which the blob will be created
+	 * @return Created loose blob OId.
+     * @throws Exception
+     */
+    OId createBlobFromDisk(const std::string& path);
+
+    /**
      * Write an in-memory buffer to the ODB as a blob
      *
+	 * @param buffer Data to be written into the blob
+	 * @return Created loose blob OId.
      * @throws Exception
      */
     OId createBlobFromBuffer(const std::vector<unsigned char>& buffer);

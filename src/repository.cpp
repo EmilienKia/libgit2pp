@@ -305,6 +305,13 @@ void Repository::deleteTag(const std::string& name)
 OId Repository::createBlobFromFile(const std::string& path)
 {
     OId oid;
+    Exception::assert(git_blob_create_fromfile(oid.data(), _repo.get(), path.c_str()));
+    return oid;
+}
+
+OId Repository::createBlobFromDisk(const std::string& path)
+{
+    OId oid;
     Exception::assert(git_blob_create_fromdisk(oid.data(), _repo.get(), path.c_str()));
     return oid;
 }
