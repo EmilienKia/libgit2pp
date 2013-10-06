@@ -21,6 +21,7 @@
 
 #include "exception.hpp"
 #include "oid.hpp"
+#include "tree.hpp"
 
 namespace git2
 {
@@ -67,6 +68,11 @@ std::string IndexEntry::path() const
 int64_t IndexEntry::fileSize() const
 {
     return _entry->file_size;
+}
+
+int IndexEntry::stage() const
+{
+	return git_index_entry_stage(constData());
 }
 
 const git_index_entry *IndexEntry::constData() const
@@ -123,37 +129,54 @@ void Index::write()
     Exception::assert(git_index_write(data()));
 }
 
-int Index::find(const std::string& path)
+bool Index::find(const std::string& path)
 {
-    return git_index_find(data(), path.c_str());
+    return git_index_find(data(), path.c_str()) >= 0;
 }
 
-// TODO only availabel from v0.18
-/*void Index::addByPath(const std::string& path)
+void Index::uniq()
 {
-    Exception::assert(git_index_add_bypath(data(), path.c_str()));
-}*/
+	git_index_uniq(data());
+}
+
+void Index::add(const std::string& path, int stage)
+{
+	Exception::assert(git_index_add(data(), path.c_str(), stage));
+}
+
+void Index::add(const IndexEntry &entry)
+{
+    Exception::assert(git_index_add2(data(), entry.constData()));
+}
+
+void Index::append(const std::string& path, int stage)
+{
+	Exception::assert(git_index_append(data(), path.c_str(), stage));
+}
+
+void Index::append(const IndexEntry &entry)
+{
+    Exception::assert(git_index_append2(data(), entry.constData()));
+}
 
 void Index::remove(int position)
 {
     Exception::assert(git_index_remove(data(), position));
 }
 
-void Index::add(const IndexEntry &source_entry, int stage)
+IndexEntry Index::get(unsigned int n) const
 {
-    Exception::assert(git_index_add(data(), source_entry.path().c_str(), stage));
+	return IndexEntry(git_index_get(data(), n));
 }
-
-
-// TODO only availabel from v0.18
-/*IndexEntry Index::getByIndex(int n) const
-{
-    return IndexEntry(git_index_get_byindex(data(), n));
-}*/
 
 unsigned int Index::entryCount() const
 {
     return git_index_entrycount(data());
+}
+
+void Index::readTree(Tree& tree)
+{
+	Exception::assert(git_index_read_tree(data(), tree.data()));
 }
 
 git_index* Index::data() const

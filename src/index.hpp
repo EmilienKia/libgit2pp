@@ -28,6 +28,7 @@ namespace git2
 {
 
 class OId;
+class Tree;
 
 /**
  * Represents a Git index/stage entry.
@@ -65,6 +66,18 @@ public:
      */
     int64_t fileSize() const;
 
+	/**
+	 * Return the stage number from a git index entry
+	 *
+	 * This entry is calculated from the entrie's flag
+	 * attribute like this:
+	 *
+	 *	(entry->flags & GIT_IDXENTRY_STAGEMASK) >> GIT_IDXENTRY_STAGESHIFT
+	 *
+	 * @returns the stage number
+	 */
+	int stage() const;
+	
     const git_index_entry *constData() const;
 
 private:
@@ -149,17 +162,77 @@ public:
      * @param path path to search
      * @return an index >= 0 if found, -1 otherwise
      */
-    int find(const std::string& path);
+    bool find(const std::string& path);
 
-    /**
-     * Add or update an index entry from a file in disk.
-     *
+	/**
+	 * Remove all entries with equal path except last added
+	 */
+	void uniq();
+	
+	/**
+	 * Add or update an index entry from a file in disk
+	 *
+	 * The file `path` must be relative to the repository's
+	 * working folder and must be readable.
+	 *
+	 * This method will fail in bare index instances.
+	 *
+	 * This forces the file to be added to the index, not looking
+	 * at gitignore rules.  Those rules can be evaluated through
+	 * the git_status APIs (in status.h) before calling this.
+	 *
      * @param path filename to add
+	 * @param stage stage for the entry 
+     * @throws Exception
+	 */
+	void add(const std::string& path, int stage);
+	
+    /**
+     * Insert an entry into the index.
+     * A full copy (including the 'path' string) of the given
+     * 'source_entry' will be inserted on the index; if the index
+     * already contains an entry for the same path, the entry
+     * will be updated.
+     *
+     * @param entry new entry object
      * @throws Exception
      */
-// TODO only availabel from v0.18
-//    void addByPath(const std::string& path);
+    void add(const IndexEntry& entry);
 
+	/**
+	 * Add (append) an index entry from a file in disk
+	 *
+	 * A new entry will always be inserted into the index;
+	 * if the index already contains an entry for such
+	 * path, the old entry will **not** be replaced.
+	 *
+	 * The file `path` must be relative to the repository's
+	 * working folder and must be readable.
+	 *
+	 * This method will fail in bare index instances.
+	 * 
+     * @param path filename to add
+	 * @param stage stage for the entry 
+     * @throws Exception
+	 */
+	void append(const std::string& path, int stage);
+
+	/**
+	 * Add (append) an index entry from an in-memory struct
+	 *
+	 * A new entry will always be inserted into the index;
+	 * if the index already contains an entry for the path
+	 * in the `entry` struct, the old entry will **not** be
+	 * replaced.
+	 *
+	 * A full copy (including the 'path' string) of the given
+	 * 'source_entry' will be inserted on the index.
+	 * 
+     * @param entry new entry object
+     * @throws Exception
+     */
+    void append(const IndexEntry& entry);
+	
     /**
      * Remove an entry from the index given the position
      *
@@ -169,28 +242,15 @@ public:
     void remove(int position);
 
     /**
-     * Insert an entry into the index.
-     * A full copy (including the 'path' string) of the given
-     * 'source_entry' will be inserted on the index; if the index
-     * already contains an entry for the same path, the entry
-     * will be updated.
-     *
-     * @param source_entry new entry object
-     * @throws Exception
-     */
-    void add(const IndexEntry& source_entry, int stage);
-
-    /**
      * Get a pointer to one of the entries in the index
      *
      * This entry can be modified, and the changes will be written
      * back to disk on the next write() call.
      *
      * @param n the position of the entry
-     * @return a pointer to the entry; NULL if out of bounds
+     * @return The entry
      */
-// TODO only availabel from v0.18
-//    IndexEntry getByIndex(int n) const;
+    IndexEntry get(unsigned int n) const;
 
     /**
      * Get the count of entries currently in the index
@@ -199,6 +259,20 @@ public:
      */
     unsigned int entryCount() const;
 
+
+	// TODO add methods related to unmerged entries
+	// git_index_entrycount_unmerged, git_index_get_unmerged_bypath, git_index_get_unmerged_byindex
+
+	/**
+	 * Read a tree into the index file
+	 *
+	 * The current index contents will be replaced by the specified tree.
+	 *
+	 * @param tree tree to read
+     * @throws Exception
+	 */
+	void readTree(Tree& tree);
+	
     git_index* data() const;
     const git_index* constData() const;
 
