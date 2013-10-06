@@ -50,53 +50,167 @@ public:
       *
       * @return the new instance
       */
-    static Config fromGlobalConfig();
+    static Config openGlobalConfig();
 
-    /**
-      * Appends a config file with the given access priority.
+	/**
+	 * Add an on-disk config file instance to an existing config
+	 *
+	 * The on-disk file pointed at by `path` will be opened and
+	 * parsed; it's expected to be a native Git config file following
+	 * the default Git config syntax (see man git-config).
       *
       * @param path the absolute path to the config file
       * @param priority the access priority; values with higher priority are accessed first
       *
       * @return true on success
       */
-//TODO    bool append(const std::string& path, git_config_level_t level, int force);
+    bool addFile(const std::string& path, int priority);
+
 
     /**
-      * Reads a single value from the configuration.
-      *
-      * @return the value as QVariant or an empty QVariant instance
-      */
-    std::string value(const std::string &key, const std::string &defaultValue = "") const;
+     * Reads a single string value from the configuration.
+     *
+	 * @param key Variable name
+	 * @param value Reference where store the value.
+     * @return true if the value exists, false otherwise.
+     */
+    bool get(const std::string &key, std::string& value) const;
+	
+    /**
+     * Reads a single string value from the configuration.
+     *
+	 * @param key Variable name
+	 * @param defaultValue Default value to return if not available. 
+     * @return The value if available else the default value.
+     */
+    std::string get(const std::string &key, const std::string &defaultValue = "") const;
 
     /**
-      * Writes a value in the configuration with the highest priority.
-      *
-      * @param key the name of the value to write
-      * @param value the value
-      *
-      * @todo handle the QVariant type correctly
-      */
-    void setValue(const std::string &key, const std::string &value);
+     * Writes a value in the configuration with the highest priority.
+     *
+     * @param key the name of the value to write
+     * @param value the value
+     * @throws Exception
+     */
+    void set(const std::string &key, const std::string &value);
 
     /**
-      * Remove a value from the configuration.
-      *
-      * @param key the name for the value to remove
-      */
+     * Reads a single integer value from the configuration.
+     *
+	 * @param key Variable name
+	 * @param value Pointer where store the value.
+     * @return true if the value exists, false otherwise.
+     */
+    bool get(const std::string &key, int32_t* value) const;
+	
+    /**
+     * Reads a single integer value from the configuration.
+     *
+	 * @param key Variable name
+	 * @param defaultValue Default value to return if not available. 
+     * @return The value if available else the default value.
+     */
+    int32_t get(const std::string &key, int32_t defaultValue = 0) const;
+
+    /**
+     * Writes a value in the configuration with the highest priority.
+     *
+     * @param key the name of the value to write
+     * @param value the value
+     * @throws Exception
+     */
+    void set(const std::string &key, int32_t value);
+
+    /**
+     * Reads a single integer value from the configuration.
+     *
+	 * @param key Variable name
+	 * @param value Pointer where store the value.
+     * @return true if the value exists, false otherwise.
+     */
+    bool get(const std::string &key, int64_t* value) const;
+	
+    /**
+     * Reads a single integer value from the configuration.
+     *
+	 * @param key Variable name
+	 * @param defaultValue Default value to return if not available. 
+     * @return The value if available else the default value.
+     */
+    int32_t get(const std::string &key, int64_t defaultValue = 0) const;
+
+    /**
+     * Writes a value in the configuration with the highest priority.
+     *
+     * @param key the name of the value to write
+     * @param value the value
+     * @throws Exception
+     */
+    void set(const std::string &key, int64_t value);
+
+    /**
+     * Reads a single boolean value from the configuration.
+     *
+	 * @param key Variable name
+	 * @param value Pointer where store the value.
+     * @return true if the value exists, false otherwise.
+     */
+    bool get(const std::string &key, bool* value) const;
+	
+    /**
+     * Reads a single boolean value from the configuration.
+     *
+	 * @param key Variable name
+	 * @param defaultValue Default value to return if not available. 
+     * @return The value if available else the default value.
+     */
+    int32_t get(const std::string &key, bool defaultValue = false) const;
+
+    /**
+     * Writes a value in the configuration with the highest priority.
+     *
+     * @param key the name of the value to write
+     * @param value the value
+     * @throws Exception
+     */
+    void set(const std::string &key, bool value);	
+
+    /**
+     * Remove a value from the configuration.
+     *
+     * @param key the name for the value to remove
+     * @throws Exception
+     */
     void remove(const std::string &key);
 
-public:
-    /**
-      * Searches for the global configuration file located in $HOME.
-      * @see git_config_find_global
-      */
+	// TODO Add multivar get and set (git_config_get_multivar and git_config_set_multivar)
+	// TODO Add operation on each variable (git_config_foreach())
+	// TODO Add get on variable map (git_config_get_mapped())
+
+	
+	/**
+	 * Locate the path to the global configuration file
+	 *
+	 * The user or global configuration file is usually
+	 * located in `$HOME/.gitconfig`.
+	 *
+	 * This method will try to guess the full path to that
+	 * file, if the file exists. The returned path
+	 * may be used on any `git_config` call to load the
+	 * global configuration file.
+	 *
+	 * @return Global configuration path.
+	 */
     static std::string findGlobal();
 
-    /**
-      * Searches for the system configuration file.
-      * @see git_config_find_system
-      */
+	/**
+	 * Locate the path to the system configuration file
+	 *
+	 * If /etc/gitconfig doesn't exist, it will look for
+	 * %PROGRAMFILES%\Git\etc\gitconfig.
+	 * 
+	 * @return System configuration path.
+	 */
     static std::string findSystem();
 
 private:

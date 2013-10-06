@@ -41,7 +41,7 @@ Config::~Config()
     git_config_free(_conf);
 }
 
-Config Config::fromGlobalConfig()
+Config Config::openGlobalConfig()
 {
 //    git_config * def;
     git_config * cfg;
@@ -66,24 +66,94 @@ std::string Config::findSystem()
     return std::string(buffer);
 }
 
-/*TODO bool Config::append(const std::string &path, git_config_level_t level, int force)
+bool Config::addFile(const std::string &path, int priority)
 {
-    return GIT_OK == git_config_add_file_ondisk(_conf, path.c_str(), level, force);
-}*/
+    return git_config_add_file_ondisk(_conf, path.c_str(), priority) == GIT_OK;
+}
 
-std::string Config::value(const std::string &key, const std::string &defaultValue) const
+bool Config::get(const std::string &key, std::string& value) const
 {
-    const char * result = 0;
+    const char * result = NULL;
+    if (git_config_get_string(&result, _conf, key.c_str()) == GIT_OK)
+	{
+		value.assign(result);
+        return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+std::string Config::get(const std::string &key, const std::string &defaultValue) const
+{
+    const char * result = NULL;
     if (git_config_get_string(&result, _conf, key.c_str()) == GIT_OK)
         return std::string(result);
 
     return defaultValue;
 }
 
-void Config::setValue(const std::string &key, const std::string &value)
+void Config::set(const std::string &key, const std::string &value)
 {
     Exception::assert( git_config_set_string(_conf, key.c_str(), value.c_str()) );
 }
+
+
+
+bool Config::get(const std::string &key, int32_t* value) const
+{
+    return git_config_get_int32(value, _conf, key.c_str()) == GIT_OK;
+}
+
+int32_t Config::get(const std::string &key, int32_t defaultValue) const
+{
+    int32_t result = 0;
+    if (git_config_get_int32(&result, _conf, key.c_str()) == GIT_OK)
+        return result;
+    return defaultValue;
+}
+
+void Config::set(const std::string &key, int32_t value)
+{
+	Exception::assert( git_config_set_int32(_conf, key.c_str(), value) );	
+}
+
+
+
+bool Config::get(const std::string &key, bool* value) const
+{
+	int result = 0;
+    if(git_config_get_bool(&result, _conf, key.c_str()) == GIT_OK)
+	{
+		*value = result;
+		return true;
+	}
+	else
+		return false;
+}
+
+int32_t Config::get(const std::string &key, bool defaultValue) const
+{
+    int result = 0;
+    if (git_config_get_bool(&result, _conf, key.c_str()) == GIT_OK)
+	{
+        return result;
+	}
+    return defaultValue;
+}
+
+void Config::set(const std::string &key, bool value)
+{
+	Exception::assert( git_config_set_bool(_conf, key.c_str(), value?1:0) );
+}
+
+
+void Config::remove(const std::string &key)
+{
+	Exception::assert( git_config_delete(_conf, key.c_str()) );	
+}
+
 
 
 } // namespace git2
