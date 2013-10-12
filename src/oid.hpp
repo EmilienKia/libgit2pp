@@ -114,7 +114,14 @@ public:
      * hex digitis of the oid and "..." is the remaining 38 digits.
      */
     std::string pathFormat() const;
-		
+
+	/**
+	 * Check is an oid is all zeros.
+	 * 
+	 * @return True if OId is all zeros.
+	 */
+	bool isZero() const;
+	
     /**
      * Parse a hex formatted object id into a OId.
      *
@@ -145,7 +152,8 @@ public:
      */
     static OId rawDataToOid(const std::vector<unsigned char>& raw);
 
-		
+	// TODO Should implement oid shorten related functions ?
+	
 private:
 	std::vector<unsigned char> _oid;
 };
@@ -159,6 +167,36 @@ bool operator ==(const OId &oid1, const OId &oid2);
  * Compare two OIds.
  */
 bool operator !=(const OId &oid1, const OId &oid2);
+
+/**
+ * Compare two OIds.
+ */
+bool operator >(const OId &oid1, const OId &oid2);
+
+/**
+ * Compare two OIds.
+ */
+bool operator <(const OId &oid1, const OId &oid2);
+
+/**
+ * Compare two OIds.
+ */
+bool operator >=(const OId &oid1, const OId &oid2);
+
+/**
+ * Compare two OIds.
+ */
+bool operator <=(const OId &oid1, const OId &oid2);
+
+/**
+ * Compare an OId with a string.
+ */
+bool operator == (const OId &oid, const std::string &str);
+
+/**
+ * Compare an OId with a string.
+ */
+bool operator == (const OId &oid, const char* str);
 
 
 } // namespace git2

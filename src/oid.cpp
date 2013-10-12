@@ -74,6 +74,11 @@ void OId::fromRawData(const std::vector<unsigned char>& raw)
 		_oid.assign(raw.begin(), raw.begin()+GIT_OID_RAWSZ);
 }
 
+bool OId::isZero() const
+{
+	return git_oid_iszero(constData());
+}
+
 OId OId::hexToOid(const std::vector<char>& hex)
 {
 	OId oid;
@@ -131,8 +136,39 @@ bool operator ==(const OId &oid1, const OId &oid2)
 
 bool operator !=(const OId &oid1, const OId &oid2)
 {
-	return !(operator ==(oid1, oid2));
+	return git_oid_cmp(oid1.constData(), oid2.constData()) != 0;
 }
 
-	
+bool operator >(const OId &oid1, const OId &oid2)
+{
+	return git_oid_cmp(oid1.constData(), oid2.constData()) > 0;
+}
+
+bool operator <(const OId &oid1, const OId &oid2)
+{
+	return git_oid_cmp(oid1.constData(), oid2.constData()) < 0;
+}
+
+bool operator >=(const OId &oid1, const OId &oid2)
+{
+	return git_oid_cmp(oid1.constData(), oid2.constData()) >= 0;
+}
+
+bool operator <=(const OId &oid1, const OId &oid2)
+{
+	return git_oid_cmp(oid1.constData(), oid2.constData()) <= 0;
+}
+
+bool operator == (const OId &oid, const std::string &str)
+{
+	return git_oid_streq(oid.constData(), str.c_str()) != 0;
+}
+
+bool operator == (const OId &oid, const char* str)
+{
+	return git_oid_streq(oid.constData(), str) != 0;
+}
+
+
+
 } // namespace git2
