@@ -276,7 +276,7 @@ public:
 	 * @param id Identifier for the object (complete or short id).
      * @throws Exception
      */
-    Object lookupAny(const OId& oid) const;
+    Object lookup(const OId& oid) const;
 
     /**
      * Create a new object id reference.

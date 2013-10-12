@@ -107,6 +107,37 @@ OId Object::oid() const
     return OId(git_object_id(_obj.get()));
 }
 
+bool Object::checkType(Type type) const
+{
+	return git_object_type(_obj.get()) == (git_otype)type;
+}
+
+Object::Type Object::getType() const
+{
+	return (Object::Type) git_object_type(_obj.get());
+}
+
+std::string Object::getTypeString() const
+{
+	return std::string(git_object_type2string(git_object_type(_obj.get())));
+}
+
+std::string Object::type2String(Object::Type type)
+{
+	return std::string(git_object_type2string((git_otype)type));
+}
+
+Object::Type Object::type2String(std::string str)
+{
+	return (Object::Type)git_object_string2type(str.c_str());
+}
+
+bool Object::isLooseType(Object::Type type)
+{
+	return git_object_typeisloose((git_otype)type) != 0;
+}
+
+
 bool Object::isCommit() const
 {
     return git_object_type(_obj.get()) == GIT_OBJ_COMMIT;

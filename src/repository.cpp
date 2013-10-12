@@ -234,7 +234,7 @@ Blob Repository::lookupBlob(const OId& oid) const
     return Blob(blob);
 }
 
-Object Repository::lookupAny(const OId &oid) const
+Object Repository::lookup(const OId &oid) const
 {
     git_object *object = NULL;
     Exception::assert(git_object_lookup_prefix(&object, _repo.get(), oid.constData(), oid.length(), GIT_OBJ_ANY));
