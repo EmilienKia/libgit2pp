@@ -44,6 +44,8 @@ class DatabaseBackend
 
         ~DatabaseBackend();
 
+		// TODO Should give easy access to backend functions ?
+		
         git_odb_backend* data() const;
         const git_odb_backend* constData() const;
     private:
@@ -120,13 +122,14 @@ public:
     /**
      * Determine if the given object can be found in the object database.
      *
-     * @param db database to be searched for the given object.
      * @param id the object to search for.
      * @return
      * - true, if the object was found
      * - false, otherwise
      */
     int exists(const OId& id);
+
+	// TODO Should give access to ODB objects, streams and related ?
 
     git_odb* data() const;
     const git_odb* constData() const;
