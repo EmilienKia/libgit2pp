@@ -63,14 +63,20 @@ public:
     OId target() const;
 
     /**
+     * Get the full name of a reference
+     *
+     * @return the full name for the ref
+     */
+    std::string name() const;
+
+    /**
      * Get full name to the reference pointed by this reference
      *
      * Only available if the reference is symbolic
      *
      * @return a pointer to the name if available, NULL otherwise
      */
-// TODO Only available from v0.18.0
-//    std::string symbolicTarget() const;
+    std::string symbolicTarget() const;
 
     /**
      * Return true if the reference is direct (i.e. a reference to an OID)
@@ -82,12 +88,11 @@ public:
      */
     bool isSymbolic() const;
 
-    /**
-     * Get the full name of a reference
-     *
-     * @return the full name for the ref
-     */
-    std::string name() const;
+	/**
+	 * Check if a reference has been loaded from a packfile
+	 */
+	bool isPacked() const;
+
 
     /**
      * Resolve a symbolic reference
@@ -150,8 +155,7 @@ public:
      * @param target The new target for the reference
      * @throws Exception
      */
-// TODO Only available from v0.18.0
-//    void setSymbolicTarget(const std::string& target);
+    void setSymbolicTarget(const std::string& target);
 
     /**
      * Set the OID target of a reference.
@@ -168,6 +172,61 @@ public:
      */
     void setTarget(const OId& oid);
 
+	/**
+	 * Rename an existing reference
+	 *
+	 * This method works for both direct and symbolic references.
+	 * The new name will be checked for validity and may be
+	 * modified into a normalized form.
+	 *
+	 * The reference will be immediately renamed in-memory
+	 * and on disk.
+	 *
+	 * If the `force` flag is not enabled, and there's already
+	 * a reference with the given name, the renaming will fail.
+	 *
+	 * IMPORTANT:
+	 * The user needs to write a proper reflog entry if the
+	 * reflog is enabled for the repository. We only rename
+	 * the reflog if it exists.
+	 *
+	 * @param name The new name for the reference
+	 * @param force Overwrite an existing reference
+	 * @throws Exception
+	 */
+	void rename(const std::string name, bool force = false);
+
+	/**
+	 * Delete an existing reference
+	 *
+	 * This method works for both direct and symbolic references.
+	 *
+	 * The reference will be immediately removed on disk and from
+	 * memory. The given reference pointer will no longer be valid.
+	 * 
+	 * @throws Exception
+	 */
+	void deleteReference();
+
+	/**
+	 * Reload a reference from disk
+	 *
+	 * Reference pointers may become outdated if the Git
+	 * repository is accessed simultaneously by other clients
+	 * whilt the library is open.
+	 *
+	 * This method forces a reload of the reference from disk,
+	 * to ensure that the provided information is still
+	 * reliable.
+	 *
+	 * If the reload fails (e.g. the reference no longer exists
+	 * on disk, or has become corrupted), an error code will be
+	 * returned and the reference pointer will be invalidated.
+	 * 
+	 * @throws Exception
+	 */
+	void reload();
+	
     bool isNull() const;
 
     git_reference* data() const;
@@ -177,6 +236,17 @@ private:
     typedef std::shared_ptr<git_reference> ptr_type;
     ptr_type _ref;
 };
+
+/**
+ * Compare two references.
+ */
+bool operator == (const Reference& ref1, const Reference& ref2);
+
+/**
+ * Compare two references.
+ */
+bool operator != (const Reference& ref1, const Reference& ref2);
+
 
 } // namespace git2
 #endif // _REF_HPP_

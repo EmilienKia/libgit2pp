@@ -188,14 +188,12 @@ Reference* Repository::lookupRef(const std::string& name) const
     return qr;
 }
 
-// TODO only available from v0.18.0
-/*OId* Repository::lookupRefOId(const std::string& name) const
+OId* Repository::lookupRefOId(const std::string& name) const
 {
     git_oid oid;
-    Exception::assert(git_reference_name_to_id(&oid, _repo.get(), name.c_str()));
-    OId* qoid = new OId(&oid);
-    return qoid;
-}*/
+    Exception::assert(git_reference_name_to_oid(&oid, _repo.get(), name.c_str()));
+    return new OId(&oid);
+}
 
 // TODO only available from v0.19.0
 /*Reference* Repository::lookupShorthandRef(const std::string& shorthand) const
@@ -241,23 +239,24 @@ Object Repository::lookup(const OId &oid) const
     return Object(object);
 }
 
-// TODO only available from v0.18.0
-/*Reference* Repository::createRef(const std::string& name, const OId& oid, bool overwrite)
+Reference* Repository::createRef(const std::string& name, const OId& oid, bool overwrite)
 {
     git_reference *ref = NULL;
-    Exception::assert(git_reference_create(&ref, _repo.get(), name.c_str(), oid.constData(), overwrite));
-    Reference* qr = new Reference(ref);
-    return qr;
-}*/
+    Exception::assert(git_reference_create_oid(&ref, data(), name.c_str(), oid.constData(), overwrite));
+    return new Reference(ref);
+}
 
-// TODO only available from v0.18.0
-/*Reference* Repository::createSymbolicRef(const std::string& name, const std::string& target, bool overwrite)
+Reference* Repository::createSymbolicReference(const std::string& name, const std::string& target, bool force)
 {
-    git_reference *ref = NULL;
-    Exception::assert(git_reference_symbolic_create(&ref, _repo.get(), name.c_str(), target.c_str(), overwrite));
-    Reference* qr = new Reference(ref);
-    return qr;
-}*/
+	git_reference *ref;
+	Exception::assert(git_reference_create_symbolic(&ref, data(), name.c_str(), target.c_str(), force?1:0));
+	return new Reference(ref);
+}
+
+void Repository::packAllReferences()
+{
+	Exception::assert(git_reference_packall(data()));
+}
 
 OId Repository::createCommit(const std::string& ref,
                                      const Signature& author,
@@ -336,11 +335,11 @@ std::list<std::string> Repository::listTags(const std::string& pattern) const
     return list;
 }
 
-std::list<std::string> Repository::listReferences() const
+std::list<std::string> Repository::listReferences(unsigned int listFlags) const
 {
     std::list<std::string> list;
     git_strarray refs;
-    Exception::assert(git_reference_list(&refs, _repo.get(), GIT_REF_LISTALL));
+    Exception::assert(git_reference_list(&refs, _repo.get(), listFlags));
     for(size_t i = 0; i < refs.count; ++i)
     {
         list.push_back(std::string(refs.strings[i]));

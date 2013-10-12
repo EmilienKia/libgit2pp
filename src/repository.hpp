@@ -229,8 +229,7 @@ public:
      * @throws Exception
      * @return The OId of the target
      */
-// TODO only available from v0.18.0
-//    OId* lookupRefOId(const std::string& name) const;
+    OId* lookupRefOId(const std::string& name) const;
 
     /**
      * Lookup a reference by its shorthand name in a repository.
@@ -289,23 +288,41 @@ public:
      *
      * @throws Exception
      */
-// TODO only available from v0.18.0
-//    Reference* createRef(const std::string& name, const OId& oid, bool overwrite = true);
+    Reference* createRef(const std::string& name, const OId& oid, bool overwrite = true);
 
-    /**
-     * Create a new symbolic reference.
-     *
-     * The reference will be created in the repository and written
-     * to the disk.
-     *
-     * If `overwrite` is true and there already exists a reference
-     * with the same name, it will be overwritten.
-     *
+	/**
+	 * Create a new symbolic reference.
+	 *
+	 * The reference will be created in the repository and written
+	 * to the disk.
+	 *
+	 * The generated reference must be freed by the user.
+	 *
+	 * If `force` is true and there already exists a reference
+	 * with the same name, it will be overwritten.
+	 *
+	 * @param name Reference name
+	 * @param target Reference target
+	 * @param force True to overwrite existing reference with same name, if any.
+	 * @return Created reference.
      * @throws Exception
-     */
-// TODO only available from v0.18.0
-//    Reference* createSymbolicRef(const std::string& name, const std::string& target, bool overwrite = true);
+	 */
+	Reference* createSymbolicReference(const std::string& name, const std::string& target, bool force=false);
 
+	/**
+	 * Pack all the loose references in the repository
+	 *
+	 * This method will load into the cache all the loose
+	 * references on the repository and update the
+	 * `packed-refs` file with them.
+	 *
+	 * Once the `packed-refs` file has been written properly,
+	 * the loose references will be removed from disk.
+	 * 
+     * @throws Exception
+	 */
+	void packAllReferences();
+	
     /**
      * Create a new commit in the repository
      *
@@ -398,11 +415,13 @@ public:
     /**
      * Create a list with all references in the Repository.
      *
-     * @param pattern Standard fnmatch pattern
+     * @param listFlags Filtering flags for the reference listing.
      * @throws Exception
      */
-    std::list<std::string> listReferences() const;
+    std::list<std::string> listReferences(unsigned int listFlags = GIT_REF_LISTALL) const;
 
+	// TODO implement git_reference_foreach
+	
     /**
      * @brief Get the object database behind a Git repository
      *

@@ -62,11 +62,10 @@ OId Reference::target() const
     return oid;
 }
 
-// TODO Only available from v0.18.0
-/*std::string Reference::symbolicTarget() const
+std::string Reference::symbolicTarget() const
 {
-    return std::string(git_reference_symbolic_target(_ref.get()));
-}*/
+    return std::string(git_reference_target(_ref.get()));
+}
 
 bool Reference::isDirect() const
 {
@@ -76,6 +75,11 @@ bool Reference::isDirect() const
 bool Reference::isSymbolic() const
 {
     return git_reference_type(_ref.get()) == GIT_REF_SYMBOLIC;
+}
+
+bool Reference::isPacked() const
+{
+	return git_reference_is_packed(data()) == 1;
 }
 
 std::string Reference::name() const
@@ -95,17 +99,30 @@ Repository Reference::owner() const
     return Repository(git_reference_owner(_ref.get()));
 }
 
-// TODO Only available from v0.18.0
-/*void Reference::setSymbolicTarget(const std::string& target)
+void Reference::setSymbolicTarget(const std::string& target)
 {
-    git_reference* rp;
-    Exception::assert(git_reference_symbolic_set_target(&rp, data(), target.c_str()));
-    _ref = ptr_type(rp);
-}*/
+    Exception::assert(git_reference_set_target(data(), target.c_str()));
+}
 
 void Reference::setTarget(const OId& oid)
 {
     Exception::assert(git_reference_set_target(data(), oid.format().c_str()));
+}
+
+void Reference::rename(const std::string name, bool force)
+{
+	Exception::assert(git_reference_rename(data(), name.c_str(), force?1:0));
+}
+
+void Reference::deleteReference()
+{
+	Exception::assert(git_reference_delete(data()));
+	_ref.reset();
+}
+
+void Reference::reload()
+{
+	Exception::assert(git_reference_reload(data()));
 }
 
 bool Reference::isNull() const
@@ -121,6 +138,17 @@ git_reference* Reference::data() const
 const git_reference* Reference::constData() const
 {
     return _ref.get();
+}
+
+
+bool operator == (const Reference& ref1, const Reference& ref2)
+{
+	return git_reference_cmp(ref1.data(), ref2.data()) == 0;
+}
+
+bool operator != (const Reference& ref1, const Reference& ref2)
+{
+	return git_reference_cmp(ref1.data(), ref2.data()) != 0;
 }
 
 
