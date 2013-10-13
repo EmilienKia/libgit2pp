@@ -20,6 +20,7 @@
 #include "tag.hpp"
 
 #include "exception.hpp"
+#include "object.hpp"
 #include "oid.hpp"
 #include "signature.hpp"
 
@@ -53,6 +54,16 @@ Object Tag::target() const
     return Object(obj);
 }
 
+OId Tag::targetOid() const
+{
+	 return OId(git_tag_target_oid(data()));
+}
+
+Object::Type Tag::targetType() const
+{
+	return (Object::Type) git_tag_type(data());
+}
+
 std::string Tag::name() const
 {
     return git_tag_name(data());
@@ -66,6 +77,13 @@ Signature Tag::tagger() const
 std::string Tag::message()
 {
     return git_tag_message(data());
+}
+
+Object Tag::peel()
+{
+	git_object *obj;
+	Exception::assert(git_tag_peel(&obj, data()));
+	return Object(obj);
 }
 
 git_tag* Tag::data() const

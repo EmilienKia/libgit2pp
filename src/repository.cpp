@@ -336,7 +336,10 @@ std::list<std::string> Repository::listTags(const std::string& pattern) const
 {
     std::list<std::string> list;
     git_strarray tags;
-    Exception::assert(git_tag_list_match(&tags, pattern.c_str(), _repo.get()));
+	if(pattern.empty())
+		Exception::assert(git_tag_list(&tags, _repo.get()));
+	else
+	    Exception::assert(git_tag_list_match(&tags, pattern.c_str(), _repo.get()));
     for(size_t i = 0; i < tags.count; ++i)
     {
         list.push_back(std::string(tags.strings[i]));

@@ -27,6 +27,8 @@
 namespace git2
 {
 
+class Object;
+typename Object::Type;
 class OId;
 class Signature;
 
@@ -61,18 +63,31 @@ public:
     OId oid() const;
 
     /**
-     * Get the tagged object of a tag
+     * Get the tagged object of a tag.
+	 * 
+	 * This method performs a repository lookup for the
+	 * given object and returns it
      *
      * @throws LibQGit2::Exception
      */
     Object target() const;
 
+	/**
+	 * Get the OID of the tagged object of a tag.
+	 */
+	OId targetOid() const;
+	
     /**
      * Get the name of a tag
      * @return name of the tag
      */
     std::string name() const;
 
+	/**
+	 * Get the name of a tag
+	 */
+	Object::Type targetType() const;
+	
     /**
      * Get the tagger (author) of a tag
      * @return reference to the tag's author
@@ -84,6 +99,11 @@ public:
      * @return message of the tag
      */
     std::string message();
+
+	/**
+	 * Recursively peel a tag until a non tag git_object is met.
+	 */
+	Object peel();
 
     git_tag* data() const;
     const git_tag* constData() const;
