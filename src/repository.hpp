@@ -201,19 +201,66 @@ public:
     std::string name() const;
 
     /**
-     * Get the path to the repository
+	 * Get the path of this repository
+	 *
+	 * This is the path of the `.git` folder for normal repositories,
+	 * or of the repository itself for bare repositories.
+	 *
+	 * @return the path to the repository
      */
     std::string path() const;
-
+	
     /**
-     * Get the path to the working directory
+	 * Get the path of the working directory for this repository
+	 *
+	 * If the repository is bare, this function will always return empty.
+	 *
+	 * @return the path to the working dir, if it exists
      */
-    std::string workDirPath() const;
+    std::string workdir() const;
 
+	/**
+	 * Set the path to the working directory for this repository
+	 *
+	 * The working directory doesn't need to be the same one
+	 * that contains the `.git` folder for this repository.
+	 *
+	 * If this repository is bare, setting its working directory
+	 * will turn it into a normal repository, capable of performing
+	 * all the common workdir operations (checkout, status, index
+	 * manipulation, etc).
+	 *
+	 * @param path The path to a working directory
+	 * @throws Exception
+	 */
+	void setWorkdir(const std::string path);
+		
     /**
-     * The repositories configuration file. Includes the global git configuration file.
+	 * Get the configuration file for this repository.
+	 *
+	 * If a configuration file has not been set, the default
+	 * config set for the repository will be returned, including
+	 * global and system configurations (if they are available).
+	 * 
+	 * @return The configuration object.
+	 * @throws Exception
      */
     Config configuration() const;
+
+	/**
+	 * Set the configuration file for this repository
+	 *
+	 * This configuration file will be used for all configuration
+	 * queries involving this repository.
+	 *
+	 * The repository will keep a reference to the config file;
+	 * the user must still free the config after setting it
+	 * to the repository, or it will leak.
+	 *
+	 * @param config A Config object
+	 */
+	void setConfiguration(Config& config);
+
 
     /**
      * Lookup a reference by its name in a repository.
@@ -423,23 +470,57 @@ public:
 	// TODO implement git_reference_foreach
 	
     /**
-     * @brief Get the object database behind a Git repository
-     *
-     * @return a pointer to the object db
+	 * Get the Object Database for this repository.
+	 *
+	 * If a custom ODB has not been set, the default
+	 * database for the repository will be returned (the one
+	 * located in `.git/objects`).
+	 *
+	 * @return Object database.
+     * @throws Exception
      */
     Database database() const;
 
+	/**
+	 * Set the Object Database for this repository
+	 *
+	 * The ODB will be used for all object-related operations
+	 * involving this repository.
+	 *
+	 * The repository will keep a reference to the ODB; the user
+	 * must still free the ODB object after setting it to the
+	 * repository, or it will leak.
+	 *
+	 * @param odb An ODB object
+	 */
+	void setDatabase(Database& odb);
+
     /**
-     * @brief Get the Index file of a Git repository
-     *
-     * This is a cheap operation; the index is only opened on the first call,
-     * and subsequent calls only retrieve the previous pointer.
-     *
-     * @throws Exception
-     * @return The index file of the repository
+	 * Get the Index file for this repository.
+	 *
+	 * If a custom index has not been set, the default
+	 * index for the repository will be returned (the one
+	 * located in `.git/index`).
+	 *
+	 * @return The Index file for this repository.
+	 * @throws Exception 
      */
     Index index() const;
 
+	/**
+	 * Set the index file for this repository
+	 *
+	 * This index will be used for all index-related operations
+	 * involving this repository.
+	 *
+	 * The repository will keep a reference to the index file;
+	 * the user must still free the index after setting it
+	 * to the repository, or it will leak.
+	 *
+	 * @param index An index object
+	 */
+	void setIndex(Index& index);
+	
     /**
      * @brief Get the status information of the Git repository
      *

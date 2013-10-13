@@ -213,6 +213,10 @@ public:
 	 */
     static std::string findSystem();
 
+
+	git_config * data();
+	const git_config * constData();
+	
 private:
     git_config * _conf; //!< internal pointer to the libgit2 config instance
 };

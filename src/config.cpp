@@ -154,7 +154,15 @@ void Config::remove(const std::string &key)
 	Exception::assert( git_config_delete(_conf, key.c_str()) );	
 }
 
+git_config * Config::data()
+{
+	return _conf;
+}
 
+const git_config * Config::constData()
+{
+	return _conf;
+}
 
 } // namespace git2
 

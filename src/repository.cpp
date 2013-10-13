@@ -153,7 +153,7 @@ bool Repository::isBare() const
 
 std::string Repository::name() const
 {
-    std::string repoPath = isBare() ? path() : workDirPath();
+    std::string repoPath = isBare() ? path() : workdir();
 	size_t pos = repoPath.rfind(GIT2PP_PATH_DIRECTORY_SEPARATOR);
 	if(pos==std::string::npos)
 		return repoPath;
@@ -168,9 +168,14 @@ std::string Repository::path() const
     return std::string(git_repository_path(_repo.get()));
 }
 
-std::string Repository::workDirPath() const
+std::string Repository::workdir() const
 {
     return std::string(git_repository_workdir(_repo.get()));
+}
+
+void Repository::setWorkdir(const std::string path)
+{
+	Exception::assert( git_repository_set_workdir(data(), path.c_str()) );
 }
 
 Config Repository::configuration() const
@@ -178,6 +183,11 @@ Config Repository::configuration() const
     git_config *cfg;
     Exception::assert( git_repository_config(&cfg, _repo.get()) );
     return Config(cfg);
+}
+
+void Repository::setConfiguration(Config& config)
+{
+	git_repository_set_config(data(), config.data());
 }
 
 Reference* Repository::lookupRef(const std::string& name) const
@@ -355,11 +365,21 @@ Database Repository::database() const
     return Database(odb);
 }
 
+void Repository::setDatabase(Database& odb)
+{
+	git_repository_set_odb(data(), odb.data());
+}
+
 Index Repository::index() const
 {
     git_index *idx;
     Exception::assert(git_repository_index(&idx, _repo.get()));
     return Index(idx);
+}
+
+void Repository::setIndex(Index& index)
+{
+	git_repository_set_index(data(), index.data());
 }
 
 // TODO only available from v0.19.0
