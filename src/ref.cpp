@@ -22,6 +22,7 @@
 #include "exception.hpp"
 #include "oid.hpp"
 #include "repository.hpp"
+#include "signature.hpp"
 
 namespace git2
 {
@@ -34,6 +35,15 @@ struct GitReferenceDeleter{
 		git_reference_free(object);
 	}
 };
+
+
+struct GitRefLogDeleter{
+	void operator()(git_reflog *object){
+		git_reflog_free(object);
+	}
+};
+
+
 
 }
 
@@ -125,6 +135,28 @@ void Reference::reload()
 	Exception::assert(git_reference_reload(data()));
 }
 
+RefLog* Reference::readRefLog()
+{
+	git_reflog *reflog;
+	Exception::assert(git_reflog_read(&reflog, data()));
+	return new RefLog(reflog);
+}
+
+void Reference::writeRefLog(const OId& oldOId, const Signature& committer, const std::string& msg)
+{
+	Exception::assert(git_reflog_write(data(), oldOId.constData(), committer.data(), msg.c_str()));
+}
+
+void Reference::renameRefLog(const std::string name)
+{
+	Exception::assert(git_reflog_rename(data(), name.c_str()));
+}
+
+void Reference::deleteRefLog()
+{
+	Exception::assert(git_reflog_delete(data()));
+}
+
 bool Reference::isNull() const
 {
     return data() == NULL;
@@ -151,6 +183,102 @@ bool operator != (const Reference& ref1, const Reference& ref2)
 	return git_reference_cmp(ref1.data(), ref2.data()) != 0;
 }
 
+
+//
+// RefLog
+//
+
+RefLog::RefLog(git_reflog *reflog):
+_reflog(reflog, GitRefLogDeleter())
+{
+}
+
+RefLog::RefLog(const RefLog& reflog):
+_reflog(reflog._reflog)
+{
+}
+
+RefLog::~RefLog()
+{
+}
+
+unsigned int RefLog::getEntryCount()
+{
+	return git_reflog_entrycount(data());
+}
+
+RefLogEntry* RefLog::getEntry(unsigned int idx)
+{
+	const git_reflog_entry * entry = git_reflog_entry_byindex(data(), idx);
+	if(entry!=NULL)
+		return new RefLogEntry(entry);
+	else
+		return NULL;
+}
+
+git_reflog* RefLog::data() const
+{
+    return _reflog.get();
+}
+
+const git_reflog* RefLog::constData() const
+{
+    return _reflog.get();
+}
+
+
+//
+// RefLogEntry
+//
+
+RefLogEntry::RefLogEntry(const git_reflog_entry* entry):
+_entry(entry)
+{
+}
+
+/**
+ * Copy constructor
+ */	
+RefLogEntry::RefLogEntry(const RefLogEntry& entry):
+_entry(entry._entry)
+{
+}
+
+/**
+ * Destructor.
+ */
+RefLogEntry::~RefLogEntry()
+{
+}
+
+OId RefLogEntry::getOldOId() const
+{
+	return OId(git_reflog_entry_oidold(data()));
+}
+
+OId RefLogEntry::getNewOId() const
+{
+	return OId(git_reflog_entry_oidnew(data()));
+}
+
+Signature* RefLogEntry::getSignature() const
+{
+	git_signature * sign = git_reflog_entry_committer(data());
+	if(sign!=NULL)
+		return new Signature(sign);
+	else
+		return NULL;
+}
+
+std::string RefLogEntry::getEntryMessage() const
+{
+	return std::string(git_reflog_entry_msg(data()));
+}
+
+const git_reflog_entry * RefLogEntry::data()const
+{
+	return _entry;
+}
 
 } // namespace git2
 

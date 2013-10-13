@@ -29,11 +29,14 @@ namespace git2
 
 class OId;
 class Repository;
+class RefLog;
+class RefLogEntry;
+class Signature;
 
 /**
-* Represents a Git reference.
-* Reference objects are branches, tags, etc.
-*/
+ * Represents a Git reference.
+ * Reference objects are branches, tags, etc.
+ */
 class Reference
 {
 public:
@@ -229,6 +232,43 @@ public:
 	
     bool isNull() const;
 
+	/**
+	 * Read the reflog for the given reference
+	 *
+	 * @return The reflog.
+	 * @throws Exception
+	 */
+	RefLog* readRefLog();
+
+	/**
+	 * Write a new reflog for the given reference
+	 *
+	 * If there is no reflog file for the given
+	 * reference yet, it will be created.
+	 *
+	 * @param oldOId Old oid
+	 * @param commiter Committer signature
+	 * @param msg Message
+	 * @throws Exception
+	 */
+	void writeRefLog(const OId& oldOId, const Signature& committer, const std::string& msg);
+
+	/**
+	 * Rename the reflog for the given reference
+	 * 
+	 * @param name New reflog name.
+	 * @throws Exception
+	 */
+	void renameRefLog(const std::string name);
+ 
+	/**
+	 * Delete the reflog for the given reference
+	 *
+	 * @throws Exception
+	 */
+	 void deleteRefLog();
+	
+
     git_reference* data() const;
     const git_reference* constData() const;
 
@@ -247,6 +287,106 @@ bool operator == (const Reference& ref1, const Reference& ref2);
  */
 bool operator != (const Reference& ref1, const Reference& ref2);
 
+
+
+/**
+ * Represents a Git reflog.
+ */
+class RefLog
+{
+public:
+    /**
+     * Create an new reflog object
+     */	
+	RefLog(git_reflog* reflog = NULL);
+
+    /**
+     * Copy constructor
+     */	
+	RefLog(const RefLog& reflog);
+
+	/**
+	 * Destructor.
+	 */
+	~RefLog();
+
+
+	/**
+	 * Get the number of log entries in a reflog
+	 * 
+     * @return the number of log entries
+	 */
+	unsigned int getEntryCount();
+
+	/**
+	 * Lookup an entry by its index
+	 *
+	 * @param idx The position to lookup
+	 * @return The entry; NULL if not found
+	 */
+	RefLogEntry* getEntry(unsigned int idx);
+	
+	git_reflog* data() const;
+    const git_reflog* constData() const;
+
+private:
+    typedef std::shared_ptr<git_reflog> ptr_type;
+    ptr_type _reflog;
+};
+
+/**
+ * Represent a Git reflog entry.
+ */
+class RefLogEntry
+{
+public:
+    /**
+     * Create an new reflog entry object
+     */	
+	RefLogEntry(const git_reflog_entry* entry);
+
+    /**
+     * Copy constructor
+     */	
+	RefLogEntry(const RefLogEntry& entry);
+
+	/**
+	 * Destructor.
+	 */
+	~RefLogEntry();
+
+	/**
+	 * Get the old oid
+	 *
+	 * @return the old oid
+	 */
+	OId getOldOId() const;
+
+	/**
+	 * Get the new oid
+	 *
+	 * @return the new oid at this time
+	 */
+	OId getNewOId() const;
+
+	/**
+	 * Get the committer of this entry
+	 *
+	 * @return the committer
+	 */
+	Signature* getSignature() const;
+
+	/**
+	 * Get the log msg
+	 *
+	 * @return the log msg
+	 */
+	std::string getEntryMessage() const;
+	
+	const git_reflog_entry * data()const;
+private:
+	const git_reflog_entry *_entry; 
+};
 
 } // namespace git2
 #endif // _REF_HPP_
