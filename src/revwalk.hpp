@@ -55,7 +55,7 @@ public:
     typedef unsigned int SortModes; //!< Combination of SortMode
 
     /**
-     * Allocate a new revision walker to iterate through a repo.
+     * Create a new revision walker to iterate through a repo.
      *
      * @param repo the repo to walk through
      */
@@ -69,15 +69,28 @@ public:
     ~RevWalk();
 
     /**
-     * Reset the walking machinery for reuse.
+	 * Reset the revision walker for reuse.
+	 *
+	 * This will clear all the pushed and hidden commits, and
+	 * leave the walker in a blank state (just like at
+	 * creation) ready to receive new commit pushes and
+	 * start a new walk.
+	 *
+	 * The revision walk is automatically reset when a walk
+	 * is over.
      */
     void reset() const;
 
     /**
-     * Mark the commit with the given oid as a starting point.
-     *
-     * This method adds the commit with the given id as one
-     * of the starting points for the revision traversal.
+	 * Mark a commit to start traversal from.
+	 *
+	 * The given OID must belong to a commit on the walked
+	 * repository.
+	 *
+	 * The given commit will be used as one of the roots
+	 * when starting the revision walk. At least one commit
+	 * must be pushed the repository before a walk can
+	 * be started.
      *
      * @param oid the oid of the commit to start from.
      * @throws Exception
@@ -96,10 +109,13 @@ public:
     void push(const Commit& commit) const;
 
     /**
-     * Mark the given reference as a starting point.
-     *
-     * This method adds the given reference as one
-     * of the starting points for the revision traversal.
+	 * Push matching references
+	 *
+	 * The OIDs pinted to by the references that match the given glob
+	 * pattern will be pushed to the revision walker.
+	 *
+	 * A leading 'refs/' is implied it not present as well as a trailing
+	 * '/ *' if the glob lacks '?', '*' or '['.
      *
      * @param reference the reference to strat from.
      * @throws Exception
@@ -118,7 +134,7 @@ public:
     void push(const std::string& glob) const;
 
     /**
-     * Mark HEAD as a starting point.
+	 * Push the repository's HEAD
      *
      * This method adds HEAD as a starting point for the revision traversal.
      *
