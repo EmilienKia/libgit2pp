@@ -24,6 +24,49 @@
 namespace git2
 {
 
+//
+// RefSpec
+//
+
+	RefSpec::RefSpec(const git_refspec *refspec):
+_refspec(refspec)
+{
+}
+
+RefSpec::~RefSpec()
+{
+}
+
+std::string RefSpec::src()const
+{
+	return std::string(git_refspec_src(constData()));
+}
+
+std::string RefSpec::dst()const
+{
+	return std::string(git_refspec_dst(constData()));
+}
+
+bool RefSpec::matches(const std::string& refname)const
+{
+	return git_refspec_src_matches(constData(), refname.c_str());
+}
+
+std::string RefSpec::transform(const std::string& name)const
+{
+	char buffer[GIT_PATH_MAX];
+	Exception::assert(git_refspec_transform(buffer, GIT_PATH_MAX, constData(), name.c_str()));
+	return std::string(buffer);
+}
+
+const git_refspec *RefSpec::constData()const
+{
+	return _refspec;
+}
+
+//
+// Remote
+//
 
 Remote::Remote(git_remote *remote):
 _remote(remote)		
@@ -56,20 +99,28 @@ void Remote::setFetchSpec(const std::string& spec)
 	Exception::assert(git_remote_set_fetchspec(data(), spec.c_str()));
 }
 
-/* TODO RefSpec* Remote::fetchSpec()
+RefSpec* Remote::fetchSpec()
 {
-	return NULL;
-}*/
+	const git_refspec * spec = git_remote_fetchspec(data());
+	if(spec)
+		return new RefSpec(spec);
+	else
+		return NULL;
+}
 
 void Remote::setPushSpec(const std::string& spec)
 {
 	Exception::assert(git_remote_set_pushspec(data(), spec.c_str()));
 }
 
-/* TODO RefSpec* Remote::pushSpec()
+RefSpec* Remote::pushSpec()
 {
-	return NULL;
-}*/
+	const git_refspec * spec = git_remote_pushspec(data());
+	if(spec)
+		return new RefSpec(spec);
+	else
+		return NULL;
+}
 
 void Remote::connect(int direction)
 {

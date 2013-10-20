@@ -29,6 +29,55 @@ namespace git2
 
 class Exception;
 
+/**
+ * Represents a Git remote refspec.
+ */ 
+class RefSpec
+{
+public:
+	/**
+	 * Constructor.
+	 */
+	RefSpec(const git_refspec *refspec);
+
+	/**
+	 * Destructor.
+	 */
+	~RefSpec();
+
+	/**
+	 * Get the source specifier
+	 */
+	std::string src()const;
+
+	/**
+	 * Get the destination specifier
+	 */
+	std::string dst()const;
+
+	/**
+	 * Check if a refspec's source descriptor matches a reference
+	 */
+	bool matches(const std::string& refname)const;
+
+	/**
+	 * Transform a reference to its target following the refspec's rules
+	 *
+	 * @param name the name of the reference to transform
+	 * @return The target name.
+	 * @throws Exception
+	 */
+	std::string transform(const std::string& name)const;
+	 
+	const git_refspec *constData()const;
+	
+private:
+	const git_refspec *_refspec;
+};
+
+/**
+ * Represents a Git remote.
+ */ 
 class Remote
 {
 public:
@@ -73,7 +122,7 @@ public:
 	 *
 	 * @return a pointer to the fetch refspec or NULL if it doesn't exist
 	 */
-	// TODO RefSpec* fetchSpec();
+	RefSpec* fetchSpec();
 
 	/**
 	 * Set the remote's push refspec
@@ -88,7 +137,7 @@ public:
 	 *
 	 * @return a pointer to the push refspec or NULL if it doesn't exist
 	 */
-	// TODO RefSpec* pushSpec();
+	RefSpec* pushSpec();
 
 	/**
 	 * Open a connection to a remote
