@@ -40,6 +40,7 @@ class OId;
 class Tag;
 class Tree;
 class Reference;
+class Remote;
 class Signature;
 class StatusList;
 class StatusOptions;
@@ -533,6 +534,47 @@ public:
 // TODO only available from v0.19.0
 //    StatusList status(const StatusOptions *options) const;
 
+
+	/**
+	 * Create a remote in memory
+	 *
+	 * Create a remote with the default refspecs in memory. You can use
+	 * this when you have a URL instead of a remote's name.
+	 *
+	 * @param name The remote's name
+	 * @param url The remote repository's URL
+	 * @param fetch The fetch refspec to use for this remote
+	 * @return Pointer to the new remote object.
+	 * @throws Exception
+	 */
+	Remote* createRemote(const std::string& name, const std::string& url, const std::string& fetch);
+
+	/**
+	 * Get the information for a particular remote
+	 *
+	 * @param name the remote's name
+	 * @return Pointer to the new remote object
+	 * @throws Exception
+	 */
+	Remote* getRemote(const std::string& name);
+
+	/**
+	 * Get a list of the configured remotes for a repo
+	 * 
+	 * @throws Exception
+	 */
+	std::list<std::string> listRemote();
+	
+	/**
+	 * Add a remote with the default fetch refspec to the repository's configuration
+	 *
+	 * @param name The remote's name
+	 * @param url The remote's url
+	 * @return The resulting remote
+	 * @throws Exception
+	 */
+	Remote* addRemote(const std::string& name, const std::string& url);
+	
     git_repository* data() const;
     const git_repository* constData() const;
 

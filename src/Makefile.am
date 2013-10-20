@@ -49,7 +49,9 @@ libgit2pp_la_SOURCES =  \
 	tag.cpp \
 	tag.hpp \
 	tree.cpp \
-	tree.hpp
+	tree.hpp \
+	remote.hpp \
+	remote.cpp
 
 
 libgit2pp_la_LIBADD = $(libgit2_LIBS)

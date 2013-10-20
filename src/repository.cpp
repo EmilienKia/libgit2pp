@@ -27,6 +27,7 @@
 #include "index.hpp"
 #include "oid.hpp"
 #include "ref.hpp"
+#include "remote.hpp"
 #include "signature.hpp"
 #include "status.hpp"
 #include "tag.hpp"
@@ -393,6 +394,41 @@ void Repository::setIndex(Index& index)
     Exception::assert(git_status_list_new(&statusList, _repo.get(), &opt));
     return StatusList(statusList);
 }*/
+
+
+Remote* Repository::createRemote(const std::string& name, const std::string& url, const std::string& fetch)
+{
+	git_remote *remote;
+	Exception::assert(git_remote_new(&remote, data(), name.c_str(), url.c_str(), fetch.c_str()));
+	return new Remote(remote);
+}
+
+Remote* Repository::getRemote(const std::string& name)
+{
+	git_remote *remote;
+	Exception::assert(git_remote_load(&remote, data(), name.c_str()));
+	return new Remote(remote);
+}
+
+std::list<std::string> Repository::listRemote()
+{
+    std::list<std::string> list;
+    git_strarray repos;
+    Exception::assert(git_remote_list(&repos, data()));
+    for(size_t i = 0; i < repos.count; ++i)
+    {
+        list.push_back(std::string(repos.strings[i]));
+    }
+    git_strarray_free(&repos);
+    return list;
+}
+
+Remote* Repository::addRemote(const std::string& name, const std::string& url)
+{
+	git_remote *remote;
+	Exception::assert(git_remote_add(&remote, data(), name.c_str(), url.c_str()));
+	return new Remote(remote);
+}
 
 git_repository* Repository::data() const
 {
