@@ -77,6 +77,51 @@ private:
 };
 
 /**
+ * Represents a Git object.
+ */
+class DatabaseObject
+{
+public:
+	DatabaseObject(git_odb_object* obj);
+	DatabaseObject(const DatabaseObject& obj);
+	~DatabaseObject();
+
+	/**
+	 * Return the size of an ODB object.
+	 * 
+	 * This is the real size of the data buffer, not the actual size of the object.
+	 */
+	size_t size();
+
+	/**
+	 * Return the data of an ODB object.
+	 * 
+	 * This is the uncompressed, raw data as read from the ODB,
+	 * without the leading header.
+	 * 
+	 * This pointer is owned by the object and shall not be free'd.
+	 */
+	const void* data();
+
+	/**
+	 * Return the OID of an ODB object.
+	 * 
+	 * This is the OID from which the object was read from.
+	 */
+	OId oid();
+	
+	/**
+	 * Return the type of an ODB object.
+	 */
+	Object::Type type();
+
+private:
+    typedef std::shared_ptr<git_odb_object> ptr_type;
+    ptr_type _obj;
+
+};
+
+/**
  * Represents a Git object database containing unique sha1 object ids.
  */
 class Database
@@ -214,6 +259,21 @@ public:
 	
 
 	// TODO Should give access to ODB objects, streams and related ?
+	
+	/**
+	 * Read an object from the database.
+	 * 
+	 * This method queries all available ODB backends trying to read
+	 * the given OID.
+	 * 
+	 * The returned object is reference counted and internally cached,
+	 * so it should be closed by the user once it's no longer in use.
+	 * 
+	 * @param oid identity of the object to read.
+	 * @return The readen object.
+	 */
+	DatabaseObject read(OId oid);
+
 	
 	/**
 	 * Write an object directly into the ODB

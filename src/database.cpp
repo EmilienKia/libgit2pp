@@ -76,6 +76,54 @@ const git_odb_backend* DatabaseBackend::constData() const
     return _dbb;
 }
 
+//
+// DatabaseObject
+//
+
+namespace
+{
+
+struct GitDatabaseObjectDeleter{
+	void operator()(git_odb_object *obj){
+		git_odb_object_free(obj);
+	}
+};
+
+} // namespace
+
+DatabaseObject::DatabaseObject(git_odb_object* obj):
+_obj(obj, GitDatabaseObjectDeleter())
+{
+}
+
+DatabaseObject::DatabaseObject(const DatabaseObject& obj):
+_obj(obj._obj)
+{
+}
+
+DatabaseObject::~DatabaseObject()
+{
+}
+
+size_t DatabaseObject::size()
+{
+	return git_odb_object_size(_obj.get());
+}
+
+const void* DatabaseObject::data()
+{
+	return git_odb_object_data(_obj.get());
+}
+
+OId DatabaseObject::oid()
+{
+	return OId(git_odb_object_id(_obj.get()));
+}
+
+Object::Type DatabaseObject::type()
+{
+	return (Object::Type)git_odb_object_type(_obj.get());
+}
 
 //
 // Database
@@ -163,6 +211,13 @@ OId Database::hashFile(const std::string& path, Object::Type type)
 	git_oid oid;
 	Exception::assert( git_odb_hashfile(&oid, path.c_str(), (git_otype)type) );
 	return OId(&oid);
+}
+
+DatabaseObject Database::read(OId oid)
+{
+	git_odb_object *obj;
+	Exception::assert( git_odb_read(&obj, data(), oid.constData()) );
+	return DatabaseObject(obj);
 }
 
 OId Database::write(const void* data, size_t len, Object::Type type)
