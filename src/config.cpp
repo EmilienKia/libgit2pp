@@ -1,7 +1,7 @@
 /* -*- Mode: C++; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-  */
 /*
  * libgit2pp
- * Copyright (C) 2013 Émilien Kia <emilien.kia@gmail.com>
+ * Copyright (C) 2013-2014 Émilien Kia <emilien.kia@gmail.com>
  * 
  * libgit2pp is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -41,6 +41,13 @@ Config::~Config()
     git_config_free(_conf);
 }
 
+Config Config::openDefaultConfig()
+{
+    git_config * def;
+    git_config_open_default(&def); 
+    return Config(def);
+}
+
 Config Config::openGlobalConfig()
 {
     git_config * def;
@@ -50,6 +57,46 @@ Config Config::openGlobalConfig()
         return Config(cfg);
 
     return Config();
+}
+
+Config Config::openLevel(const Config& parent, Level level)
+{
+    git_config * conf;
+    git_config_open_level(&conf, parent.constData(), (git_config_level_t)level);
+    return Config(conf);
+}
+
+Config Config::openOnDisk(const std::string& path)
+{
+    git_config * conf;
+    git_config_open_ondisk(&conf, path.c_str());
+    return Config(conf);
+}
+
+bool Config::parseBool(const std::string& value)
+{
+    int res;
+    Exception::assert( git_config_parse_bool(&res, value.c_str()) );
+    return res != 0;
+}
+
+int32_t Config::parseInt32(const std::string& value)
+{
+    int32_t res;
+    Exception::assert( git_config_parse_int32(&res, value.c_str()) );
+    return res;
+}
+
+int64_t Config::parseInt64(const std::string& value)
+{
+    int64_t res;
+    Exception::assert( git_config_parse_int64(&res, value.c_str()) );
+    return res;
+}
+
+void Config::refresh()
+{
+    Exception::assert( git_config_refresh(data()) );
 }
 
 std::string Config::findGlobal()
@@ -65,6 +112,14 @@ std::string Config::findSystem()
     Exception::assert( git_config_find_system(buffer, GIT_PATH_MAX) );
     return std::string(buffer);
 }
+
+std::string Config::findXdg()
+{
+    char buffer[GIT_PATH_MAX];
+    Exception::assert( git_config_find_xdg(buffer, GIT_PATH_MAX) );
+    return std::string(buffer);
+}
+
 
 bool Config::addFile(const std::string &path, Level level, bool force)
 {
@@ -119,6 +174,24 @@ void Config::set(const std::string &key, int32_t value)
 	Exception::assert( git_config_set_int32(_conf, key.c_str(), value) );	
 }
 
+bool Config::get(const std::string &key, int64_t* value) const
+{
+    return git_config_get_int64(value, _conf, key.c_str()) == GIT_OK;
+}
+
+int64_t Config::get(const std::string &key, int64_t defaultValue) const
+{
+    int64_t result = 0;
+    if (git_config_get_int64(&result, _conf, key.c_str()) == GIT_OK)
+        return result;
+    return defaultValue;
+}
+
+void Config::set(const std::string &key, int64_t value)
+{
+	Exception::assert( git_config_set_int64(_conf, key.c_str(), value) );	
+}
+
 
 
 bool Config::get(const std::string &key, bool* value) const
@@ -149,9 +222,9 @@ void Config::set(const std::string &key, bool value)
 }
 
 
-void Config::remove(const std::string &key)
+void Config::deleteEntry(const std::string &name)
 {
-	Exception::assert( git_config_delete_entry(_conf, key.c_str()) );	
+	Exception::assert( git_config_delete_entry(_conf, name.c_str()) );	
 }
 
 git_config * Config::data()
@@ -159,7 +232,7 @@ git_config * Config::data()
 	return _conf;
 }
 
-const git_config * Config::constData()
+const git_config * Config::constData()const
 {
 	return _conf;
 }
