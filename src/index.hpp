@@ -24,6 +24,8 @@
 
 #include <memory>
 
+#if 0 // Index and related should be reworked completely
+
 namespace git2
 {
 
@@ -281,6 +283,9 @@ private:
     ptr_type _index;
 };
 
+
 } // namespace git2
+
+#endif //0
 #endif // _INDEX_HPP_
 

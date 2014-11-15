@@ -73,15 +73,6 @@ public:
     std::string name() const;
 
     /**
-     * Get full name to the reference pointed by this reference
-     *
-     * Only available if the reference is symbolic
-     *
-     * @return a pointer to the name if available, NULL otherwise
-     */
-    std::string symbolicTarget() const;
-
-    /**
      * Return true if the reference is direct (i.e. a reference to an OID)
      */
     bool isDirect() const;
@@ -90,12 +81,6 @@ public:
      * Return true if the reference is symbolig (i.e. a reference to another ref)
      */
     bool isSymbolic() const;
-
-	/**
-	 * Check if a reference has been loaded from a packfile
-	 */
-	bool isPacked() const;
-
 
     /**
      * Resolve a symbolic reference
@@ -144,21 +129,6 @@ public:
      * @param name The new name for the reference
      */
     void setName(const std::string& name);
-
-    /**
-     * Set the target reference of a reference.
-     *
-     * This converts the reference into a symbolic
-     * reference.
-     *
-     * This marks the reference as modified; changes
-     * won't take effect until it is manually written back
-     * to disk.
-     *
-     * @param target The new target for the reference
-     * @throws Exception
-     */
-    void setSymbolicTarget(const std::string& target);
 
     /**
      * Set the OID target of a reference.
@@ -210,25 +180,6 @@ public:
 	 * @throws Exception
 	 */
 	void deleteReference();
-
-	/**
-	 * Reload a reference from disk
-	 *
-	 * Reference pointers may become outdated if the Git
-	 * repository is accessed simultaneously by other clients
-	 * whilt the library is open.
-	 *
-	 * This method forces a reload of the reference from disk,
-	 * to ensure that the provided information is still
-	 * reliable.
-	 *
-	 * If the reload fails (e.g. the reference no longer exists
-	 * on disk, or has become corrupted), an error code will be
-	 * returned and the reference pointer will be invalidated.
-	 * 
-	 * @throws Exception
-	 */
-	void reload();
 	
     bool isNull() const;
 
@@ -239,19 +190,6 @@ public:
 	 * @throws Exception
 	 */
 	RefLog* readRefLog();
-
-	/**
-	 * Write a new reflog for the given reference
-	 *
-	 * If there is no reflog file for the given
-	 * reference yet, it will be created.
-	 *
-	 * @param oldOId Old oid
-	 * @param commiter Committer signature
-	 * @param msg Message
-	 * @throws Exception
-	 */
-	void writeRefLog(const OId& oldOId, const Signature& committer, const std::string& msg);
 
 	/**
 	 * Rename the reflog for the given reference

@@ -232,9 +232,11 @@ public:
 	 * manipulation, etc).
 	 *
 	 * @param path The path to a working directory
+	 * @param updateGitLink Create/update gitlink in workdir and set config
+	 *        "core.worktree" (if workdir is not the parent of the .git directory)
 	 * @throws Exception
 	 */
-	void setWorkdir(const std::string path);
+	void setWorkdir(const std::string& path, bool updateGitLink);
 		
     /**
 	 * Get the configuration file for this repository.
@@ -247,21 +249,6 @@ public:
 	 * @throws Exception
      */
     Config configuration() const;
-
-	/**
-	 * Set the configuration file for this repository
-	 *
-	 * This configuration file will be used for all configuration
-	 * queries involving this repository.
-	 *
-	 * The repository will keep a reference to the config file;
-	 * the user must still free the config after setting it
-	 * to the repository, or it will leak.
-	 *
-	 * @param config A Config object
-	 */
-	void setConfiguration(Config& config);
-
 
     /**
      * Lookup a reference by its name in a repository.
@@ -336,7 +323,7 @@ public:
      *
      * @throws Exception
      */
-    Reference* createRef(const std::string& name, const OId& oid, bool overwrite = true);
+    Reference* createRef(const std::string& name, const OId& id, bool overwrite = true);
 
 	/**
 	 * Create a new symbolic reference.
@@ -357,20 +344,6 @@ public:
 	 */
 	Reference* createSymbolicReference(const std::string& name, const std::string& target, bool force=false);
 
-	/**
-	 * Pack all the loose references in the repository
-	 *
-	 * This method will load into the cache all the loose
-	 * references on the repository and update the
-	 * `packed-refs` file with them.
-	 *
-	 * Once the `packed-refs` file has been written properly,
-	 * the loose references will be removed from disk.
-	 * 
-     * @throws Exception
-	 */
-	void packAllReferences();
-	
     /**
      * Create a new commit in the repository
      *
@@ -419,17 +392,6 @@ public:
     void deleteTag(const std::string& name);
 
     /**
-     * Read a file from the working folder of a repository
-     * and write it to the Object Database as a loose blob
-     *
-	 * @param path file from which the blob will be created,
-	 *	relative to the repository's working dir
-	 * @return Created loose blob OId.
-     * @throws Exception
-     */
-    OId createBlobFromFile(const std::string& path);
-
-    /**
 	 * Read a file from the filesystem and write its content
 	 * to the Object Database as a loose blob
      *
@@ -463,10 +425,9 @@ public:
     /**
      * Create a list with all references in the Repository.
      *
-     * @param listFlags Filtering flags for the reference listing.
      * @throws Exception
      */
-    std::list<std::string> listReferences(unsigned int listFlags = GIT_REF_LISTALL) const;
+    std::list<std::string> listReferences() const;
 
 	// TODO implement git_reference_foreach
 	
@@ -481,20 +442,6 @@ public:
      * @throws Exception
      */
     Database database() const;
-
-	/**
-	 * Set the Object Database for this repository
-	 *
-	 * The ODB will be used for all object-related operations
-	 * involving this repository.
-	 *
-	 * The repository will keep a reference to the ODB; the user
-	 * must still free the ODB object after setting it to the
-	 * repository, or it will leak.
-	 *
-	 * @param odb An ODB object
-	 */
-	void setDatabase(Database& odb);
 
     /**
 	 * Get the Index file for this repository.
@@ -543,11 +490,10 @@ public:
 	 *
 	 * @param name The remote's name
 	 * @param url The remote repository's URL
-	 * @param fetch The fetch refspec to use for this remote
 	 * @return Pointer to the new remote object.
 	 * @throws Exception
 	 */
-	Remote* createRemote(const std::string& name, const std::string& url, const std::string& fetch);
+	Remote* createRemote(const std::string& name, const std::string& url);
 
 	/**
 	 * Get the information for a particular remote
@@ -564,16 +510,6 @@ public:
 	 * @throws Exception
 	 */
 	std::list<std::string> listRemote();
-	
-	/**
-	 * Add a remote with the default fetch refspec to the repository's configuration
-	 *
-	 * @param name The remote's name
-	 * @param url The remote's url
-	 * @return The resulting remote
-	 * @throws Exception
-	 */
-	Remote* addRemote(const std::string& name, const std::string& url);
 	
     git_repository* data() const;
     const git_repository* constData() const;

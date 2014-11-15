@@ -35,6 +35,15 @@ class Repository;
 class Config
 {
 public:
+	enum Level {
+		LEVEL_SYSTEM = GIT_CONFIG_LEVEL_SYSTEM,
+		LEVEL_XDG = GIT_CONFIG_LEVEL_XDG,
+		LEVEL_GLOBAL = GIT_CONFIG_LEVEL_GLOBAL,
+		LEVEL_LOCAL = GIT_CONFIG_LEVEL_LOCAL,
+		LEVEL_APP = GIT_CONFIG_LEVEL_APP,
+		LEVEL_HIGHEST = GIT_CONFIG_HIGHEST_LEVEL,
+	};
+
     /**
       * Default constructor to create a new configuration object.
       *
@@ -60,11 +69,12 @@ public:
 	 * the default Git config syntax (see man git-config).
       *
       * @param path the absolute path to the config file
-      * @param priority the access priority; values with higher priority are accessed first
+      * @param level the priority level of the backend
+      * @param force replace config file at the given priority level
       *
       * @return true on success
       */
-    bool addFile(const std::string& path, int priority);
+    bool addFile(const std::string& path, Level level, bool force);
 
 
     /**

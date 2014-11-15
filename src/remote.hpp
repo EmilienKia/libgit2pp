@@ -81,6 +81,10 @@ private:
 class Remote
 {
 public:
+	enum Direction {
+		Fetch = GIT_DIRECTION_FETCH,
+		Push  = GIT_DIRECTION_PUSH
+	};
 
     /**
      * Constructor.
@@ -110,36 +114,6 @@ public:
 	std::string url();
 
 	/**
-	 * Set the remote's fetch refspec
-	 *
-	 * @param spec the new fetch refspec
-	 * @throws Exception
-	 */
-	void setFetchSpec(const std::string& spec);
-
-	/**
-	 * Get the fetch refspec
-	 *
-	 * @return a pointer to the fetch refspec or NULL if it doesn't exist
-	 */
-	RefSpec* fetchSpec();
-
-	/**
-	 * Set the remote's push refspec
-	 *
-	 * @param spec the new push refspec
-	 * @throws Exception
-	 */
-	void setPushSpec(const std::string& spec);
-
-	/**
-	 * Get the push refspec
-	 *
-	 * @return a pointer to the push refspec or NULL if it doesn't exist
-	 */
-	RefSpec* pushSpec();
-
-	/**
 	 * Open a connection to a remote
 	 *
 	 * The transport is selected based on the URL. The direction argument
@@ -149,7 +123,7 @@ public:
 	 * @param direction whether you want to receive or send data
 	 * @throws Exception
 	 */
-	void connect(int direction);
+	void connect(Direction direction);
 
 	/**
 	 * Check whether the remote is connected

@@ -43,10 +43,10 @@ Config::~Config()
 
 Config Config::openGlobalConfig()
 {
-//    git_config * def;
+    git_config * def;
     git_config * cfg;
-//TODO    git_config_open_default(&def); // Not available before v0.18
-    if ( git_config_open_global(&cfg/*, def TODO Not available before v0.17*/ ) == GIT_OK )
+    git_config_open_default(&def); 
+    if ( git_config_open_global(&cfg, def) == GIT_OK )
         return Config(cfg);
 
     return Config();
@@ -66,9 +66,9 @@ std::string Config::findSystem()
     return std::string(buffer);
 }
 
-bool Config::addFile(const std::string &path, int priority)
+bool Config::addFile(const std::string &path, Level level, bool force)
 {
-    return git_config_add_file_ondisk(_conf, path.c_str(), priority) == GIT_OK;
+    return git_config_add_file_ondisk(_conf, path.c_str(), (git_config_level_t)level, force ? 1 : 0) == GIT_OK;
 }
 
 bool Config::get(const std::string &key, std::string& value) const
@@ -151,7 +151,7 @@ void Config::set(const std::string &key, bool value)
 
 void Config::remove(const std::string &key)
 {
-	Exception::assert( git_config_delete(_conf, key.c_str()) );	
+	Exception::assert( git_config_delete_entry(_conf, key.c_str()) );	
 }
 
 git_config * Config::data()

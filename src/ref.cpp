@@ -67,14 +67,7 @@ Reference::~Reference()
 
 OId Reference::target() const
 {
-	OId oid;
-	oid.fromString(git_reference_target(_ref.get()));
-    return oid;
-}
-
-std::string Reference::symbolicTarget() const
-{
-    return std::string(git_reference_target(_ref.get()));
+	return OId(git_reference_target(_ref.get()));
 }
 
 bool Reference::isDirect() const
@@ -85,11 +78,6 @@ bool Reference::isDirect() const
 bool Reference::isSymbolic() const
 {
     return git_reference_type(_ref.get()) == GIT_REF_SYMBOLIC;
-}
-
-bool Reference::isPacked() const
-{
-	return git_reference_is_packed(data()) == 1;
 }
 
 std::string Reference::name() const
@@ -109,19 +97,18 @@ Repository Reference::owner() const
     return Repository(git_reference_owner(_ref.get()));
 }
 
-void Reference::setSymbolicTarget(const std::string& target)
-{
-    Exception::assert(git_reference_set_target(data(), target.c_str()));
-}
-
 void Reference::setTarget(const OId& oid)
 {
-    Exception::assert(git_reference_set_target(data(), oid.format().c_str()));
+	git_reference *ref;
+    Exception::assert(git_reference_set_target(&ref, data(), oid.constData()));
+    _ref = ptr_type(ref, GitReferenceDeleter());
 }
 
 void Reference::rename(const std::string name, bool force)
 {
-	Exception::assert(git_reference_rename(data(), name.c_str(), force?1:0));
+	git_reference *ref;
+	Exception::assert(git_reference_rename(&ref, data(), name.c_str(), force?1:0));
+	_ref = ptr_type(ref, GitReferenceDeleter());
 }
 
 void Reference::deleteReference()
@@ -130,21 +117,11 @@ void Reference::deleteReference()
 	_ref.reset();
 }
 
-void Reference::reload()
-{
-	Exception::assert(git_reference_reload(data()));
-}
-
 RefLog* Reference::readRefLog()
 {
 	git_reflog *reflog;
 	Exception::assert(git_reflog_read(&reflog, data()));
 	return new RefLog(reflog);
-}
-
-void Reference::writeRefLog(const OId& oldOId, const Signature& committer, const std::string& msg)
-{
-	Exception::assert(git_reflog_write(data(), oldOId.constData(), committer.data(), msg.c_str()));
 }
 
 void Reference::renameRefLog(const std::string name)
@@ -253,17 +230,17 @@ RefLogEntry::~RefLogEntry()
 
 OId RefLogEntry::getOldOId() const
 {
-	return OId(git_reflog_entry_oidold(data()));
+	return OId(git_reflog_entry_id_old(data()));
 }
 
 OId RefLogEntry::getNewOId() const
 {
-	return OId(git_reflog_entry_oidnew(data()));
+	return OId(git_reflog_entry_id_new(data()));
 }
 
 Signature* RefLogEntry::getSignature() const
 {
-	git_signature * sign = git_reflog_entry_committer(data());
+	const git_signature * sign = git_reflog_entry_committer(data());
 	if(sign!=NULL)
 		return new Signature(sign);
 	else
@@ -272,7 +249,7 @@ Signature* RefLogEntry::getSignature() const
 
 std::string RefLogEntry::getEntryMessage() const
 {
-	return std::string(git_reflog_entry_msg(data()));
+	return std::string(git_reflog_entry_message(data()));
 }
 
 const git_reflog_entry * RefLogEntry::data()const

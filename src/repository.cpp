@@ -174,9 +174,9 @@ std::string Repository::workdir() const
     return std::string(git_repository_workdir(_repo.get()));
 }
 
-void Repository::setWorkdir(const std::string path)
+void Repository::setWorkdir(const std::string& path, bool updateGitLink)
 {
-	Exception::assert( git_repository_set_workdir(data(), path.c_str()) );
+	Exception::assert( git_repository_set_workdir(data(), path.c_str(), updateGitLink ? 1 : 0) );
 }
 
 Config Repository::configuration() const
@@ -184,11 +184,6 @@ Config Repository::configuration() const
     git_config *cfg;
     Exception::assert( git_repository_config(&cfg, _repo.get()) );
     return Config(cfg);
-}
-
-void Repository::setConfiguration(Config& config)
-{
-	git_repository_set_config(data(), config.data());
 }
 
 Reference* Repository::lookupRef(const std::string& name) const
@@ -202,7 +197,7 @@ Reference* Repository::lookupRef(const std::string& name) const
 OId* Repository::lookupRefOId(const std::string& name) const
 {
     git_oid oid;
-    Exception::assert(git_reference_name_to_oid(&oid, _repo.get(), name.c_str()));
+    Exception::assert(git_reference_name_to_id(&oid, _repo.get(), name.c_str()));
     return new OId(&oid);
 }
 
@@ -253,20 +248,15 @@ Object Repository::lookup(const OId &oid) const
 Reference* Repository::createRef(const std::string& name, const OId& oid, bool overwrite)
 {
     git_reference *ref = NULL;
-    Exception::assert(git_reference_create_oid(&ref, data(), name.c_str(), oid.constData(), overwrite));
+    Exception::assert(git_reference_create(&ref, data(), name.c_str(), oid.constData(), overwrite));
     return new Reference(ref);
 }
 
 Reference* Repository::createSymbolicReference(const std::string& name, const std::string& target, bool force)
 {
 	git_reference *ref;
-	Exception::assert(git_reference_create_symbolic(&ref, data(), name.c_str(), target.c_str(), force?1:0));
+	Exception::assert(git_reference_symbolic_create(&ref, data(), name.c_str(), target.c_str(), force?1:0));
 	return new Reference(ref);
-}
-
-void Repository::packAllReferences()
-{
-	Exception::assert(git_reference_packall(data()));
 }
 
 OId Repository::createCommit(const std::string& ref,
@@ -312,13 +302,6 @@ void Repository::deleteTag(const std::string& name)
     Exception::assert(git_tag_delete(_repo.get(), name.c_str()));
 }
 
-OId Repository::createBlobFromFile(const std::string& path)
-{
-    OId oid;
-    Exception::assert(git_blob_create_fromfile(oid.data(), _repo.get(), path.c_str()));
-    return oid;
-}
-
 OId Repository::createBlobFromDisk(const std::string& path)
 {
     OId oid;
@@ -349,11 +332,11 @@ std::list<std::string> Repository::listTags(const std::string& pattern) const
     return list;
 }
 
-std::list<std::string> Repository::listReferences(unsigned int listFlags) const
+std::list<std::string> Repository::listReferences() const
 {
     std::list<std::string> list;
     git_strarray refs;
-    Exception::assert(git_reference_list(&refs, _repo.get(), listFlags));
+    Exception::assert(git_reference_list(&refs, _repo.get()));
     for(size_t i = 0; i < refs.count; ++i)
     {
         list.push_back(std::string(refs.strings[i]));
@@ -369,11 +352,7 @@ Database Repository::database() const
     return Database(odb);
 }
 
-void Repository::setDatabase(Database& odb)
-{
-	git_repository_set_odb(data(), odb.data());
-}
-
+#ifdef TODO // Index rework
 Index Repository::index() const
 {
     git_index *idx;
@@ -386,6 +365,8 @@ void Repository::setIndex(Index& index)
 	git_repository_set_index(data(), index.data());
 }
 
+#endif // 0 Index rework
+
 // TODO only available from v0.19.0
 /*StatusList Repository::status(const StatusOptions *options) const
 {
@@ -396,10 +377,10 @@ void Repository::setIndex(Index& index)
 }*/
 
 
-Remote* Repository::createRemote(const std::string& name, const std::string& url, const std::string& fetch)
+Remote* Repository::createRemote(const std::string& name, const std::string& url)
 {
 	git_remote *remote;
-	Exception::assert(git_remote_new(&remote, data(), name.c_str(), url.c_str(), fetch.c_str()));
+	Exception::assert(git_remote_create(&remote, data(), name.c_str(), url.c_str()));
 	return new Remote(remote);
 }
 
@@ -423,12 +404,6 @@ std::list<std::string> Repository::listRemote()
     return list;
 }
 
-Remote* Repository::addRemote(const std::string& name, const std::string& url)
-{
-	git_remote *remote;
-	Exception::assert(git_remote_add(&remote, data(), name.c_str(), url.c_str()));
-	return new Remote(remote);
-}
 
 git_repository* Repository::data() const
 {

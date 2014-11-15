@@ -135,7 +135,7 @@ public:
 	 * Commit::tree() in that no attempts are made to fetch an object
 	 * from the ODB.
 	 */
-	OId treeOId() const;
+	OId treeId() const;
 
 
     /**
@@ -165,7 +165,7 @@ public:
      * @return the OId of the parent commit or an empty OId
      * @throws Exception
      */
-    OId parentOId(unsigned n) const;
+    OId parentId(unsigned n) const;
 
     git_commit* data() const;
     const git_commit* constData() const;

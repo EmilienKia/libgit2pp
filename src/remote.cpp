@@ -94,37 +94,9 @@ std::string Remote::url()
 	return std::string(git_remote_url(data()));
 }
 
-void Remote::setFetchSpec(const std::string& spec)
+void Remote::connect(Direction direction)
 {
-	Exception::assert(git_remote_set_fetchspec(data(), spec.c_str()));
-}
-
-RefSpec* Remote::fetchSpec()
-{
-	const git_refspec * spec = git_remote_fetchspec(data());
-	if(spec)
-		return new RefSpec(spec);
-	else
-		return NULL;
-}
-
-void Remote::setPushSpec(const std::string& spec)
-{
-	Exception::assert(git_remote_set_pushspec(data(), spec.c_str()));
-}
-
-RefSpec* Remote::pushSpec()
-{
-	const git_refspec * spec = git_remote_pushspec(data());
-	if(spec)
-		return new RefSpec(spec);
-	else
-		return NULL;
-}
-
-void Remote::connect(int direction)
-{
-	Exception::assert(git_remote_connect(data(), direction));
+	Exception::assert(git_remote_connect(data(), (git_direction)direction));
 }
 
 bool Remote::isConnected()

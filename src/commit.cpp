@@ -100,9 +100,9 @@ Tree Commit::tree() const
     return Tree(tree);
 }
 
-OId Commit::treeOId() const
+OId Commit::treeId() const
 {
-	return OId(git_commit_tree_oid(data()));
+	return OId(git_commit_tree_id(data()));
 }
 
 unsigned int Commit::parentCount() const
@@ -116,9 +116,9 @@ Commit Commit::parent(unsigned n) const
     return Commit(parent);
 }
 
-OId Commit::parentOId(unsigned n) const
+OId Commit::parentId(unsigned n) const
 {
-    return OId(git_commit_parent_oid(data(), n));
+    return OId(git_commit_parent_id(data(), n));
 }
 
 git_commit* Commit::data() const

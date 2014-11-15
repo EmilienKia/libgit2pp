@@ -56,12 +56,12 @@ Object Tag::target() const
 
 OId Tag::targetOid() const
 {
-	 return OId(git_tag_target_oid(data()));
+	 return OId(git_tag_target_id(data()));
 }
 
 Object::Type Tag::targetType() const
 {
-	return (Object::Type) git_tag_type(data());
+	return (Object::Type) git_tag_target_type(data());
 }
 
 std::string Tag::name() const

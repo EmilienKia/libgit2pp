@@ -23,6 +23,9 @@
 #include "oid.hpp"
 #include "tree.hpp"
 
+#if 0 // Index and related should be reworked completely
+
+
 namespace git2
 {
 
@@ -131,7 +134,7 @@ void Index::write()
 
 bool Index::find(const std::string& path)
 {
-    return git_index_find(data(), path.c_str()) >= 0;
+    return git_index_find(NULL, data(), path.c_str()) >= 0;
 }
 
 void Index::uniq()
@@ -193,3 +196,4 @@ const git_index* Index::constData() const
 
 } // namespace git2
 
+#endif // 0
