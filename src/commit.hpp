@@ -1,7 +1,7 @@
 /* -*- Mode: C++; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-  */
 /*
  * libgit2pp
- * Copyright (C) 2013 Émilien Kia <emilien.kia@gmail.com>
+ * Copyright (C) 2013-2014 Émilien Kia <emilien.kia@gmail.com>
  * 
  * libgit2pp is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -37,9 +37,6 @@ class Tree;
  * @brief Wrapper class for git_commit.
  *
  * This class represents a Git commit object.
- *
- * @ingroup LibQGit2
- * @{
  */
 class Commit : public Object
 {
@@ -96,7 +93,7 @@ public:
 	 *
 	 * @return Message encoding.
 	 */
-	std::string encoding() const;
+	std::string messageEncoding() const;
 
     /**
      * Get the commit time (i.e. committer time) of this commit.
@@ -166,6 +163,13 @@ public:
      * @throws Exception
      */
     OId parentId(unsigned n) const;
+    
+    /**
+     * Get the commit object that is the nth generation ancestor of
+     * the named commit object, following only the first parents.
+     */
+    Commit getNthGenAncestor(unsigned n) const;
+    
 
     git_commit* data() const;
     const git_commit* constData() const;

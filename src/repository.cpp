@@ -275,6 +275,24 @@ OId Repository::createCommit(const std::string& ref,
     return oid;
 }
 
+OId Repository::createCommit(const std::string& ref,
+					 const Signature& author,
+					 const Signature& committer,
+					 const std::string& messageEncoding,
+					 const std::string& message,
+					 const Tree& tree,
+					 const std::list<Commit>& parents)
+{
+    std::vector<const git_commit*> p;
+	for(const Commit& parent : parents)
+		p.push_back(parent.constData());
+
+    OId oid;
+    Exception::assert(git_commit_create(oid.data(), _repo.get(), ref.c_str(), author.data(), committer.data(), messageEncoding.c_str(), message.c_str(), tree.data(), p.size(), p.data()));
+    return oid;
+}
+
+
 OId Repository::createTag(const std::string& name,
                                   const Object& target,
                                   bool overwrite)

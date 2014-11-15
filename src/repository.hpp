@@ -355,6 +355,13 @@ public:
                          const std::string& message,
                          const Tree& tree,
                          const std::list<Commit>& parents);
+    OId createCommit(const std::string& ref,
+                         const Signature& author,
+                         const Signature& committer,
+                         const std::string& messageEncoding,
+                         const std::string& message,
+                         const Tree& tree,
+                         const std::list<Commit>& parents);
 
     /**
      * Create a new lightweight tag pointing at a target object

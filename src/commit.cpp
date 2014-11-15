@@ -1,7 +1,7 @@
 /* -*- Mode: C++; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-  */
 /*
  * libgit2pp
- * Copyright (C) 2013 Émilien Kia <emilien.kia@gmail.com>
+ * Copyright (C) 2013-2014 Émilien Kia <emilien.kia@gmail.com>
  * 
  * libgit2pp is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -68,7 +68,7 @@ std::string Commit::shortMessage(size_t maxLen) const
 	}
 }
 
-std::string Commit::encoding() const
+std::string Commit::messageEncoding() const
 {
 	return std::string(git_commit_message_encoding(data()));
 }
@@ -119,6 +119,13 @@ Commit Commit::parent(unsigned n) const
 OId Commit::parentId(unsigned n) const
 {
     return OId(git_commit_parent_id(data(), n));
+}
+
+Commit Commit::getNthGenAncestor(unsigned n) const
+{
+    git_commit *ancestor;
+    Exception::assert(git_commit_nth_gen_ancestor(&ancestor, data(), n));
+    return Commit(ancestor);
 }
 
 git_commit* Commit::data() const
