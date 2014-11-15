@@ -23,6 +23,7 @@
 #include <git2.h>
 
 #include "oid.hpp"
+#include "object.hpp"
 
 #include <string>
 
@@ -37,19 +38,42 @@ class Database;
  */
 class DatabaseBackend
 {
-    public:
-        DatabaseBackend();
+public:
+	DatabaseBackend(git_odb_backend *dbb = NULL);
+	DatabaseBackend( const DatabaseBackend& dbb );
 
-        DatabaseBackend( const DatabaseBackend& dbb );
+	~DatabaseBackend();
 
-        ~DatabaseBackend();
+	/**
+	 * Create a backend for loose objects.
+	 * 
+	 * @param objectsDir the Git repository's objects directory
+	 * @param compressionLevel zlib compression level to use
+	 * @param doFsync whether to do an fsync() after writing (currently ignored)
+	 */
+	static DatabaseBackend loose(const std::string& objectsDir, int compressionLevel, bool doFsync = false);
 
-		// TODO Should give easy access to backend functions ?
-		
-        git_odb_backend* data() const;
-        const git_odb_backend* constData() const;
-    private:
-        git_odb_backend *_dbb;
+	/**
+	 * Create a backend out of a single packfile.
+	 * 
+	 * This can be useful for inspecting the contents of a single packfile.
+	 * 
+	 * @param indexFile path to the packfile's .idx file
+	 */
+	static DatabaseBackend onePack(const std::string& indexFile);
+
+	/**
+	 * Create a backend for the packfiles.
+	 * 
+	 * @param objectDir the Git repository's objects directory
+	 */
+	static DatabaseBackend pack(const std::string& objectDir);
+
+
+	git_odb_backend* data() const;
+	const git_odb_backend* constData() const;
+private:
+	git_odb_backend *_dbb;
 };
 
 /**
@@ -65,7 +89,9 @@ public:
      * backend must be manually added using `addBackend()`
      *
      */
-    Database( git_odb *odb = NULL);
+    Database();
+    
+    Database( git_odb *odb);
 
     Database( const Database& db );
 
@@ -83,15 +109,18 @@ public:
     * contains a 'pack/' folder with the corresponding data
     *
     * @param objectsDir path of the backends' "objects" directory.
-    * @return GIT_SUCCESS if the database opened; otherwise an error
-    * code describing why the open was not possible.
     */
-    int open(const std::string& objectsDir);
+    static Database open(const std::string& objectsDir);
 
     /**
      * Close an open object database.
      */
     void close();
+    
+    /**
+     * Refresh the object database to load newly added files.
+     */
+    void refresh();
 
     /**
      * Add a custom backend to an existing Object DB
@@ -99,9 +128,8 @@ public:
      * Read <odb_backends.h> for more information.
      *
      * @param backend pointer to a databaseBackend instance
-     * @return 0 on sucess; error code otherwise
      */
-    int addBackend(DatabaseBackend *backend, int priority);
+    void addBackend(DatabaseBackend *backend, int priority);
 
     /**
     * Add a custom backend to an existing Object DB; this
@@ -115,9 +143,23 @@ public:
     * Read <odb_backends.h> for more information.
     *
     * @param backend pointer to a databaseBackend instance
-    * @return 0 on sucess; error code otherwise
     */
-    int addAlternate(DatabaseBackend *backend, int priority);
+    void addAlternate(DatabaseBackend *backend, int priority);
+    
+    /**
+     * Add an on-disk alternate to an existing Object DB.
+     * 
+     * Note that the added path must point to an objects, not to a
+     * full repository, to use it as an alternate store.
+     * 
+     * Alternate backends are always checked for objects after all
+     * the main backends have been exhausted.
+     * 
+     * Writing is disabled on alternate backends.
+     * 
+     * @param path path to the objects folder for the alternate
+     */
+    void addDiskAlternate(const std::string& path);
 
     /**
      * Determine if the given object can be found in the object database.
@@ -129,7 +171,68 @@ public:
      */
     int exists(const OId& id);
 
+	// TODO implement foreach functions (git_odb_foreach)
+	
+	/**
+	 * Get the number of ODB backend objects
+	 *
+	 * @return number of backends in the ODB
+	 */
+	size_t getNumBackends();
+	
+	/**
+	 * Lookup an ODB backend object by index
+	 *
+	 * @ pos index into object database backend list
+	 */
+	DatabaseBackend getBackend(size_t pos);
+
+	/**
+	 * Determine the object-ID (sha1 hash) of a data buffer
+	 * 
+	 * The resulting SHA-1 OID will be the identifier for the data buffer as if the data buffer it were to written to the ODB.
+	 * 
+	 * @param data data to hash
+	 * @param len size of the data
+	 * @param type type of the data to hash
+	 */
+	static OId hash(const void* data, size_t len, Object::Type type);
+
+	/**
+	 * Read a file from disk and fill a git_oid with the object id that
+	 * the file would have if it were written to the Object Database as
+	 * an object of the given type (w/o applying filters).
+	 * Similar functionality to git.git's git hash-object without
+	 * the -w flag, however, with the --no-filters flag.
+	 * If you need filters, see git_repository_hashfile.
+	 * 
+	 * @param path file to read and determine object id for
+	 * @param type the type of the object that will be hashed
+	 */
+	static OId hashFile(const std::string& path, Object::Type type);
+	
+	
+
 	// TODO Should give access to ODB objects, streams and related ?
+	
+	/**
+	 * Write an object directly into the ODB
+	 * 
+	 * This method writes a full object straight into the ODB.
+	 * For most cases, it is preferred to write objects through
+	 * a write stream, which is both faster and less memory intensive,
+	 * specially for big objects.
+	 * 
+	 * This method is provided for compatibility with custom backends
+	 * which are not able to support streaming writes.
+	 * 
+	 * @param data buffer with the data to store
+	 * @param len size of the buffer
+	 * @param type type of the data to store
+	 * @return OID of writen object
+	 */
+	OId write(const void* data, size_t len, Object::Type type);
+
 
     git_odb* data() const;
     const git_odb* constData() const;

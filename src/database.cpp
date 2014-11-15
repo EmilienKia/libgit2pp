@@ -19,6 +19,10 @@
 
 #include "database.hpp"
 
+#include <git2/odb_backend.h>
+
+#include "exception.hpp"
+
 namespace git2
 {
 
@@ -27,7 +31,8 @@ namespace git2
 // DatabaseBackend
 //
 
-DatabaseBackend::DatabaseBackend()
+DatabaseBackend::DatabaseBackend(git_odb_backend *dbb):
+_dbb(dbb)
 {
 }
 
@@ -38,6 +43,28 @@ DatabaseBackend::DatabaseBackend(const DatabaseBackend&)
 DatabaseBackend::~DatabaseBackend()
 {
 }
+
+DatabaseBackend DatabaseBackend::loose(const std::string& objectsDir, int compressionLevel, bool doFsync)
+{
+	git_odb_backend* dbb;
+	Exception::assert( git_odb_backend_loose(&dbb, objectsDir.c_str(), compressionLevel, doFsync?1:0) );
+	return DatabaseBackend(dbb);
+}
+
+DatabaseBackend DatabaseBackend::onePack(const std::string& indexFile)
+{
+	git_odb_backend* dbb;
+	Exception::assert( git_odb_backend_one_pack(&dbb, indexFile.c_str()) );
+	return DatabaseBackend(dbb);
+}
+
+DatabaseBackend DatabaseBackend::pack(const std::string& objectDir)
+{
+	git_odb_backend* dbb;
+	Exception::assert( git_odb_backend_pack(&dbb, objectDir.c_str()) );
+	return DatabaseBackend(dbb);
+}
+
 
 git_odb_backend* DatabaseBackend::data() const
 {
@@ -54,6 +81,12 @@ const git_odb_backend* DatabaseBackend::constData() const
 // Database
 //
 
+Database::Database()
+{
+	git_odb *odb;
+	Exception::assert( git_odb_new(&odb) );
+	_db = odb;
+}
 
 Database::Database(git_odb *odb):
 _db(odb)
@@ -69,30 +102,76 @@ Database::~Database()
 {
 }
 
-int Database::open(const std::string& objectsDir)
+Database Database::open(const std::string& objectsDir)
 {
-    return git_odb_open(&_db, objectsDir.c_str());
+	git_odb *db;
+    Exception::assert( git_odb_open(&db, objectsDir.c_str()) );
+    return Database(db);
 }
 
 void Database::close()
 {
-    return git_odb_free(_db);
+    git_odb_free(_db);
 }
 
-int Database::addBackend(DatabaseBackend *backend, int priority)
+void Database::refresh()
 {
-    return git_odb_add_backend(_db, (git_odb_backend *)backend, priority);
+	Exception::assert( git_odb_refresh(data()) );
 }
 
-int Database::addAlternate(DatabaseBackend *backend, int priority)
+void Database::addBackend(DatabaseBackend *backend, int priority)
 {
-    return git_odb_add_alternate(_db, (git_odb_backend *)backend, priority);
+    Exception::assert( git_odb_add_backend(_db, (git_odb_backend *)backend, priority) );
+}
+
+void Database::addAlternate(DatabaseBackend *backend, int priority)
+{
+    Exception::assert( git_odb_add_alternate(_db, (git_odb_backend *)backend, priority) );
+}
+
+void Database::addDiskAlternate(const std::string& path)
+{
+    Exception::assert( git_odb_add_disk_alternate(_db, path.c_str()) );
 }
 
 int Database::exists(const OId& id)
 {
     return git_odb_exists(_db, id.constData());
 }
+
+size_t Database::getNumBackends()
+{
+	return git_odb_num_backends(data());
+}
+
+DatabaseBackend Database::getBackend(size_t pos)
+{
+	git_odb_backend * dbb;
+	Exception::assert( git_odb_get_backend(&dbb, data(), pos) );
+	return DatabaseBackend(dbb);
+}
+
+OId Database::hash(const void* data, size_t len, Object::Type type)
+{
+	git_oid oid;
+	Exception::assert( git_odb_hash(&oid, data, len, (git_otype)type) );
+	return OId(&oid);
+}
+
+OId Database::hashFile(const std::string& path, Object::Type type)
+{
+	git_oid oid;
+	Exception::assert( git_odb_hashfile(&oid, path.c_str(), (git_otype)type) );
+	return OId(&oid);
+}
+
+OId Database::write(const void* data, size_t len, Object::Type type)
+{
+	git_oid oid;
+	Exception::assert( git_odb_write(&oid, this->data(), data, len, (git_otype)type) );
+	return OId(&oid);
+}
+
 
 git_odb* Database::data() const
 {
