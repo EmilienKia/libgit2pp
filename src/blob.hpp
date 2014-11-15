@@ -1,7 +1,7 @@
 /* -*- Mode: C++; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-  */
 /*
  * libgit2pp
- * Copyright (C) 2013 Émilien Kia <emilien.kia@gmail.com>
+ * Copyright (C) 2013-2014 Émilien Kia <emilien.kia@gmail.com>
  * 
  * libgit2pp is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -51,6 +51,11 @@ public:
     ~Blob();
 
     /**
+     * Determine if the blob content is most certainly binary or not.
+     */
+    bool isBinary() const;
+
+    /**
      * Get the raw content of this blob.
      *
      * This method returns a read-only buffer with the raw content
@@ -73,7 +78,7 @@ public:
      *
      * @return size on bytes
      */
-    int rawSize() const;
+    int64_t rawSize() const;
 
     git_blob* data() const;
     const git_blob* constData() const;

@@ -1,7 +1,7 @@
 /* -*- Mode: C++; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-  */
 /*
  * libgit2pp
- * Copyright (C) 2013 Émilien Kia <emilien.kia@gmail.com>
+ * Copyright (C) 2013-2014 Émilien Kia <emilien.kia@gmail.com>
  * 
  * libgit2pp is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -37,6 +37,11 @@ Blob::~Blob()
 {
 }
 
+bool Blob::isBinary() const
+{
+    return git_blob_is_binary(data()) != 0;
+}
+
 const void* Blob::rawContent() const
 {
     return git_blob_rawcontent(data());
@@ -47,7 +52,7 @@ std::vector<unsigned char> Blob::content() const
     return std::vector<unsigned char>( static_cast<const char *>(rawContent()), static_cast<const char *>(rawContent())+rawSize() );
 }
 
-int Blob::rawSize() const
+int64_t Blob::rawSize() const
 {
     return git_blob_rawsize(data());
 }

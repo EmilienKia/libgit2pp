@@ -309,10 +309,39 @@ OId Repository::createBlobFromDisk(const std::string& path)
     return oid;
 }
 
+OId Repository::createBlobFromDisk(const char* path)
+{
+    OId oid;
+    Exception::assert(git_blob_create_fromdisk(oid.data(), _repo.get(), path));
+    return oid;
+}
+
+
 OId Repository::createBlobFromBuffer(const std::vector<unsigned char>& buffer)
 {
     OId oid;
     Exception::assert(git_blob_create_frombuffer(oid.data(), _repo.get(), buffer.data(), buffer.size()));
+    return oid;
+}
+
+OId Repository::createBlobFromBuffer(const void* buffer, size_t len)
+{
+    OId oid;
+    Exception::assert(git_blob_create_frombuffer(oid.data(), _repo.get(), buffer, len));
+    return oid;
+}
+
+OId Repository::createBlobFromWorkdir(const std::string& relativePath)
+{
+    OId oid;
+    Exception::assert(git_blob_create_fromworkdir(oid.data(), _repo.get(), relativePath.c_str()));
+    return oid;
+}
+
+OId Repository::createBlobFromWorkdir(const char* relativePath)
+{
+    OId oid;
+    Exception::assert(git_blob_create_fromworkdir(oid.data(), _repo.get(), relativePath));
     return oid;
 }
 

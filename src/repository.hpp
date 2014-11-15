@@ -392,23 +392,40 @@ public:
     void deleteTag(const std::string& name);
 
     /**
-	 * Read a file from the filesystem and write its content
-	 * to the Object Database as a loose blob
-     *
-	 * @param path file from which the blob will be created
-	 * @return Created loose blob OId.
-     * @throws Exception
-     */
-    OId createBlobFromDisk(const std::string& path);
-
-    /**
      * Write an in-memory buffer to the ODB as a blob
      *
-	 * @param buffer Data to be written into the blob
-	 * @return Created loose blob OId.
+     * @param buffer Data to be written into the blob
+     * @return Created loose blob OId.
      * @throws Exception
      */
     OId createBlobFromBuffer(const std::vector<unsigned char>& buffer);
+    OId createBlobFromBuffer(const void* buffer, size_t len);
+    
+    // TODO Wrap git_blob_create_fromchunks
+
+    /**
+     * Read a file from the filesystem and write its content
+     * to the Object Database as a loose blob
+     *
+     * @param path file from which the blob will be created
+     * @return Created loose blob OId.
+     * @throws Exception
+     */
+    OId createBlobFromDisk(const std::string& path);
+    OId createBlobFromDisk(const char* path);
+
+    /**
+     * Read a file from the working folder of a repository and
+     * write it to the Object Database as a loose blob
+     *
+     * @param path file from which the blob will be created,
+     * relative to the repository's working dir
+     * @return Created loose blob OId.
+     * @throws Exception
+     */
+    OId createBlobFromWorkdir(const std::string& relativePath);
+    OId createBlobFromWorkdir(const char* relativePath);
+
 
     /**
      * Create a list with all the tags in the Repository
