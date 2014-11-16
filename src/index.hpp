@@ -24,8 +24,6 @@
 
 #include <memory>
 
-#if 0 // Index and related should be reworked completely
-
 namespace git2
 {
 
@@ -70,11 +68,6 @@ public:
 
 	/**
 	 * Return the stage number from a git index entry
-	 *
-	 * This entry is calculated from the entrie's flag
-	 * attribute like this:
-	 *
-	 *	(entry->flags & GIT_IDXENTRY_STAGEMASK) >> GIT_IDXENTRY_STAGESHIFT
 	 *
 	 * @returns the stage number
 	 */
@@ -126,20 +119,23 @@ public:
      */
     void open(const std::string& indexPath);
 
-    /**
-     * Create a new tree object from the index
-     *
-     * @throws LibQGit2::Exception
-     */
-// TODO only available since v0.18
-//    OId createTree();
+	/**
+	 * Read index capabilities flags.
+	 * 
+	 * @return A combination of GIT_INDEXCAP values
+	 */
+	unsigned int getCapabilities()const;
 
-    /**
-     * Clear the contents (all the entries) of an index object.
-     * This clears the index object in memory; changes must be manually
-     * written to disk for them to take effect.
-     */
-    void clear();
+	/**
+	 * Set index capabilities flags.
+	 *
+	 * If you pass `GIT_INDEXCAP_FROM_OWNER` for the caps, then the
+	 * capabilities will be read from the config of the owner object,
+	 * looking at `core.ignorecase`, `core.filemode`, `core.symlinks`.
+	 * 
+	 * @param caps A combination of GIT_INDEXCAP values
+	 */
+	void setCapabilities(unsigned int caps);
 
     /**
      * Update the contents of an existing index object in memory
@@ -157,114 +153,6 @@ public:
      */
     void write();
 
-    /**
-     * Find the first index of any entires which point to given
-     * path in the Git index.
-     *
-     * @param path path to search
-     * @return an index >= 0 if found, -1 otherwise
-     */
-    bool find(const std::string& path);
-
-	/**
-	 * Remove all entries with equal path except last added
-	 */
-	void uniq();
-	
-	/**
-	 * Add or update an index entry from a file in disk
-	 *
-	 * The file `path` must be relative to the repository's
-	 * working folder and must be readable.
-	 *
-	 * This method will fail in bare index instances.
-	 *
-	 * This forces the file to be added to the index, not looking
-	 * at gitignore rules.  Those rules can be evaluated through
-	 * the git_status APIs (in status.h) before calling this.
-	 *
-     * @param path filename to add
-	 * @param stage stage for the entry 
-     * @throws Exception
-	 */
-	void add(const std::string& path, int stage);
-	
-    /**
-     * Insert an entry into the index.
-     * A full copy (including the 'path' string) of the given
-     * 'source_entry' will be inserted on the index; if the index
-     * already contains an entry for the same path, the entry
-     * will be updated.
-     *
-     * @param entry new entry object
-     * @throws Exception
-     */
-    void add(const IndexEntry& entry);
-
-	/**
-	 * Add (append) an index entry from a file in disk
-	 *
-	 * A new entry will always be inserted into the index;
-	 * if the index already contains an entry for such
-	 * path, the old entry will **not** be replaced.
-	 *
-	 * The file `path` must be relative to the repository's
-	 * working folder and must be readable.
-	 *
-	 * This method will fail in bare index instances.
-	 * 
-     * @param path filename to add
-	 * @param stage stage for the entry 
-     * @throws Exception
-	 */
-	void append(const std::string& path, int stage);
-
-	/**
-	 * Add (append) an index entry from an in-memory struct
-	 *
-	 * A new entry will always be inserted into the index;
-	 * if the index already contains an entry for the path
-	 * in the `entry` struct, the old entry will **not** be
-	 * replaced.
-	 *
-	 * A full copy (including the 'path' string) of the given
-	 * 'source_entry' will be inserted on the index.
-	 * 
-     * @param entry new entry object
-     * @throws Exception
-     */
-    void append(const IndexEntry& entry);
-	
-    /**
-     * Remove an entry from the index given the position
-     *
-     * @param position position of the entry to remove
-     * @throws Exception
-     */
-    void remove(int position);
-
-    /**
-     * Get a pointer to one of the entries in the index
-     *
-     * This entry can be modified, and the changes will be written
-     * back to disk on the next write() call.
-     *
-     * @param n the position of the entry
-     * @return The entry
-     */
-    IndexEntry get(unsigned int n) const;
-
-    /**
-     * Get the count of entries currently in the index
-     *
-     * @return integer of count of current entries
-     */
-    unsigned int entryCount() const;
-
-
-	// TODO add methods related to unmerged entries
-	// git_index_entrycount_unmerged, git_index_get_unmerged_bypath, git_index_get_unmerged_byindex
-
 	/**
 	 * Read a tree into the index file
 	 *
@@ -275,6 +163,200 @@ public:
 	 */
 	void readTree(Tree& tree);
 	
+	/**
+	 * Write the index as a tree
+	 * 
+	 * This method will scan the index and write a representation
+	 * of its current state back to disk; it recursively creates
+	 * tree objects for each of the subtrees stored in the index,
+	 * but only returns the OID of the root tree. This is the OID
+	 * that can be used e.g. to create a commit.
+	 *
+	 * The index instance cannot be bare, and needs to be associated
+	 * to an existing repository.
+	 *
+	 * The index must not contain any file in conflict.
+	 * 
+	 * @return Written tree OID
+	 */
+	OId writeTree();
+
+/** @name Raw Index Entry Functions
+ *
+ * These functions work on index entries, and allow for raw manipulation
+ * of the entries.
+ */
+/**@{*/
+
+    /**
+     * Get the count of entries currently in the index
+     *
+     * @return count of current entries
+     */
+    size_t entryCount() const;
+    
+    /**
+     * Clear the contents (all the entries) of an index object.
+     * This clears the index object in memory; changes must be manually
+     * written to disk for them to take effect.
+     */
+    void clear();
+        
+    /**
+     * Get an entry in the index
+     *
+     * @param n the position of the entry
+     * @return The entry
+     */
+    IndexEntry get(size_t n) const;
+    
+    /**
+     * Get an entry in the index
+     *
+     * @param path Path to search
+     * @param stage Stage to search
+     * @return The entry
+     */
+    IndexEntry get(const std::string& path, int stage) const;
+
+    /**
+     * Remove an entry from the index given the position
+     *
+     * @param path Path to search
+     * @param stage Stage to search
+     * @throws Exception
+     */
+    void remove(const std::string& path, int stage);
+
+	/**
+	 * Remove all entries from the index under a given directory
+	 * 
+	 * @param dir container directory path
+	 * @param stage stage to search
+	 */
+	void removeDirectory(const std::string& dir, int stage);
+	
+	/**
+	 * Add or update an index entry from an in-memory struct.
+	 * 
+	 * If a previous index entry exists that has the same path and stage
+	 * as the given entry, it will be replaced.  Otherwise, the
+	 * entry will be added.
+	 * 
+	 * A full copy (including the 'path' string) of the given
+	 * 'entry' will be inserted on the index.
+	 * 
+	 * @param entry new entry object
+	 */
+	void add(const IndexEntry& entry);
+
+/**@}*/
+
+/** @name Workdir Index Entry Functions
+ *
+ * These functions work on index entries specifically in the working
+ * directory (ie, stage 0).
+ */
+/**@{*/
+
+	/**
+	 * Add or update an index entry from a file on disk
+	 *
+	 * The file `path` must be relative to the repository's
+	 * working folder and must be readable.
+	 *
+	 * This method will fail in bare index instances.
+	 *
+	 * This forces the file to be added to the index, not looking
+	 * at gitignore rules.  Those rules can be evaluated through
+	 * the git_status APIs (in status.h) before calling this.
+	 *
+	 * If this file currently is the result of a merge conflict, this
+	 * file will no longer be marked as conflicting.  The data about
+	 * the conflict will be moved to the "resolve undo" (REUC) section.
+	 * 
+	 * @param path filename to add
+	 */
+	void add(const std::string& path);
+	
+	/**
+	 * Remove an index entry corresponding to a file on disk
+	 *
+	 * The file `path` must be relative to the repository's
+	 * working folder.  It may exist.
+	 *
+	 * If this file currently is the result of a merge conflict, this
+	 * file will no longer be marked as conflicting.  The data about
+	 * the conflict will be moved to the "resolve undo" (REUC) section.
+	 * 
+	 * @param path filename to remove
+	 */
+	void remove(const std::string& path);
+
+	// TODO add methods dealing with callbacks (git_index_add_all, git_index_remove_all, git_index_update_all)
+
+    /**
+     * Find the first index of any entires which point to given
+     * path in the Git index.
+     *
+     * @param path path to search
+     * @return an index >= 0 if found, -1 otherwise
+     */
+    bool find(const std::string& path);
+    
+/**@}*/
+
+/** @name Conflict Index Entry Functions
+ *
+ * These functions work on conflict index entries specifically (ie, stages 1-3)
+ */
+/**@{*/
+
+	/**
+	 * Add or update index entries to represent a conflict
+	 *
+	 * The entries are the entries from the tree included in the merge.  Any
+	 * entry may be null to indicate that that file was not present in the
+	 * trees during the merge.  For example, ancestor_entry may be NULL to
+	 * indicate that a file was added in both branches and must be resolved.
+	 *
+	 * @param ancestor the entry data for the ancestor of the conflict
+	 * @param our the entry data for our side of the merge conflict
+	 * @param their the entry data for their side of the merge conflict
+	 */
+	void addConflict(const IndexEntry& ancestor, const IndexEntry& our, const IndexEntry& their);
+
+	/**
+	 * Get the index entries that represent a conflict of a single file.
+	 * 
+	 * @param ancestor the entry data for the ancestor of the conflict
+	 * @param our the entry data for our side of the merge conflict
+	 * @param their the entry data for their side of the merge conflict
+	 * @param path  path to search
+	 */
+	void getConflict(IndexEntry& ancestor, IndexEntry& our, IndexEntry& their, const std::string& path);
+	
+	/**
+	 * Removes the index entries that represent a conflict of a single file.
+	 * 
+	 * @param path  path to search
+	 */
+	void removeConflict(const std::string& path);
+
+	/**
+	 * Remove all conflicts in the index (entries with a stage greater than 0.)
+	 */
+	void cleanupConflict();
+	
+	/**
+	 * Determine if the index contains entries representing file conflicts.
+	 */
+	bool hasConflicts()const;
+
+	// TODO add functions related to conflict iterators.
+	
+/**@}*/
+
     git_index* data() const;
     const git_index* constData() const;
 
@@ -286,6 +368,5 @@ private:
 
 } // namespace git2
 
-#endif //0
 #endif // _INDEX_HPP_
 

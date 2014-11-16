@@ -493,6 +493,16 @@ public:
 	 */
 	void setIndex(Index& index);
 	
+	/**
+	 * Write the index as a tree to the given repository
+	 * 
+	 * The index must not contain any file in conflict.
+	 * 
+	 * @param index Index to write
+	 * @return OID of the the written tree
+	 */
+	OId writeIndexTree(Index& index);
+	
     /**
      * @brief Get the status information of the Git repository
      *

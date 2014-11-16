@@ -412,6 +412,13 @@ void Repository::setIndex(Index& index)
 	git_repository_set_index(data(), index.data());
 }
 
+OId Repository::writeIndexTree(Index& index)
+{
+	git_oid oid;
+	Exception::assert(git_index_write_tree_to(&oid, index.data(), data()));
+	return OId(oid);
+}
+
 #endif // 0 Index rework
 
 // TODO only available from v0.19.0

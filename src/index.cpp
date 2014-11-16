@@ -23,22 +23,9 @@
 #include "oid.hpp"
 #include "tree.hpp"
 
-#if 0 // Index and related should be reworked completely
-
 
 namespace git2
 {
-
-namespace
-{
-
-struct GitIndexDeleter{
-	void operator()(git_index *index){
-		git_index_free(index);
-	}
-};
-
-}
 
 //
 // IndexEntry
@@ -87,6 +74,17 @@ const git_index_entry *IndexEntry::constData() const
 // Index
 //
 
+namespace
+{
+
+struct GitIndexDeleter{
+	void operator()(git_index *index){
+		git_index_free(index);
+	}
+};
+
+}
+
 Index::Index(git_index *index)
     : _index(index, GitIndexDeleter())
 {
@@ -109,13 +107,15 @@ void Index::open(const std::string& indexPath)
     _index = ptr_type(index, GitIndexDeleter());
 }
 
-// TODO only available since v0.18
-/*OId Index::createTree()
+unsigned int Index::getCapabilities()const
 {
-    OId oid;
-    Exception::assert(git_index_write_tree(oid.data(), data()));
-    return oid;
-}*/
+	return git_index_caps(constData());
+}
+
+void Index::setCapabilities(unsigned int caps)
+{
+	Exception::assert(git_index_set_caps(data(), caps));
+}
 
 void Index::clear()
 {
@@ -132,54 +132,92 @@ void Index::write()
     Exception::assert(git_index_write(data()));
 }
 
+void Index::readTree(Tree& tree)
+{
+	Exception::assert(git_index_read_tree(data(), tree.data()));
+}
+
+OId Index::writeTree()
+{
+	git_oid oid;
+	Exception::assert(git_index_write_tree(&oid, data()));
+	return OId(&oid);
+}
+
+size_t Index::entryCount() const
+{
+    return git_index_entrycount(data());
+}
+
+
 bool Index::find(const std::string& path)
 {
     return git_index_find(NULL, data(), path.c_str()) >= 0;
 }
 
-void Index::uniq()
+void Index::remove(const std::string& path, int stage)
 {
-	git_index_uniq(data());
+    Exception::assert(git_index_remove(data(), path.c_str(), stage));
 }
 
-void Index::add(const std::string& path, int stage)
+void Index::removeDirectory(const std::string& dir, int stage)
 {
-	Exception::assert(git_index_add(data(), path.c_str(), stage));
+	Exception::assert(git_index_remove_directory(data(), dir.c_str(), stage));
 }
 
-void Index::add(const IndexEntry &entry)
+IndexEntry Index::get(size_t n) const
 {
-    Exception::assert(git_index_add2(data(), entry.constData()));
+	return IndexEntry(git_index_get_byindex(data(), n));
 }
 
-void Index::append(const std::string& path, int stage)
+IndexEntry Index::get(const std::string& path, int stage) const
 {
-	Exception::assert(git_index_append(data(), path.c_str(), stage));
+	return IndexEntry(git_index_get_bypath(data(), path.c_str(), stage));
 }
 
-void Index::append(const IndexEntry &entry)
+void Index::add(const IndexEntry& entry)
 {
-    Exception::assert(git_index_append2(data(), entry.constData()));
+	Exception::assert(git_index_add(data(), entry.constData()));
 }
 
-void Index::remove(int position)
+void Index::add(const std::string& path)
 {
-    Exception::assert(git_index_remove(data(), position));
+	Exception::assert(git_index_add_bypath(data(),path.c_str()));
 }
 
-IndexEntry Index::get(unsigned int n) const
+void Index::remove(const std::string& path)
 {
-	return IndexEntry(git_index_get(data(), n));
+	Exception::assert(git_index_remove_bypath(data(),path.c_str()));
 }
 
-unsigned int Index::entryCount() const
+void Index::addConflict(const IndexEntry& ancestor, const IndexEntry& our, const IndexEntry& their)
 {
-    return git_index_entrycount(data());
+	Exception::assert(git_index_conflict_add(data(), ancestor.constData(), our.constData(), their.constData()));
 }
 
-void Index::readTree(Tree& tree)
+void Index::getConflict(IndexEntry& ancestor, IndexEntry& our, IndexEntry& their, const std::string& path)
 {
-	Exception::assert(git_index_read_tree(data(), tree.data()));
+	// TODO rework it !
+	const git_index_entry *out_ancestor, *out_our, *out_their;
+	Exception::assert(git_index_conflict_get(&out_ancestor, &out_our, &out_their, data(), path.c_str()));
+	ancestor = IndexEntry(out_ancestor);
+	our = IndexEntry(out_our);
+	their = IndexEntry(out_their);
+}
+
+void Index::removeConflict(const std::string& path)
+{
+	Exception::assert(git_index_conflict_remove(data(), path.c_str()));
+}
+
+void Index::cleanupConflict()
+{
+	git_index_conflict_cleanup(data());
+}
+
+bool Index::hasConflicts()const
+{
+	return git_index_has_conflicts(data()) != 0;
 }
 
 git_index* Index::data() const
@@ -195,5 +233,3 @@ const git_index* Index::constData() const
 
 
 } // namespace git2
-
-#endif // 0
