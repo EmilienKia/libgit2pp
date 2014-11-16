@@ -83,7 +83,7 @@ _sign(signature)
 }
 
 Signature::Signature(const Signature& other):
-_sign(other.data())
+_sign(other.constData())
 {
 }
 
@@ -116,8 +116,7 @@ int Signature::when_offset() const
 	return _sign->when.offset;
 }
 
-
-const git_signature *Signature::data() const
+const git_signature *Signature::constData() const
 {
     return _sign;
 }

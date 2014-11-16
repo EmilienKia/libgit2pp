@@ -256,7 +256,7 @@ public:
      * @throws Exception
      * @return The reference with the given name
      */
-    Reference* lookupRef(const std::string& name) const;
+    Reference lookupReference(const std::string& name) const;
 
     /**
      * Lookup a reference by its name in a repository and returns the oid of its target.
@@ -264,16 +264,19 @@ public:
      * @throws Exception
      * @return The OId of the target
      */
-    OId* lookupRefOId(const std::string& name) const;
+    OId lookupReferenceOId(const std::string& name) const;
 
     /**
-     * Lookup a reference by its shorthand name in a repository.
+	 * Lookup a reference by DWIMing its short name
+	 *
+	 * Apply the git precendence rules to the given shorthand to determine
+	 * which reference the user is refering to.
      *
+     * @param shorthand the short name for the reference
      * @throws Exception
      * @return The reference with the given name
      */
-// TODO only available from v0.19.0
-//    Reference* lookupShorthandRef(const std::string& shorthand) const;
+    Reference lookupShorthandReference(const std::string& shorthand) const;
 
     /**
      * Lookup a commit object from a repository.
@@ -312,29 +315,62 @@ public:
      */
     Object lookup(const OId& oid) const;
 
-    /**
-     * Create a new object id reference.
+	/**
+	 * Create a new symbolic reference.
+	 *
+	 * A direct reference (also called an object id reference) refers
+	 * directly to a specific object id (a.k.a. OID or SHA) in the repository.
+	 * The id permanently refers to the object (although the reference itself can be moved).
+	 * For example, in libgit2 the direct ref "refs/tags/v0.17.0" refers
+	 * to OID 5b9fac39d8a76b9139667c26a63e6b3f204b3977.
+	 * 
+	 * The direct reference will be created in the repository and
+	 * written to the disk. The generated reference object must be freed by the user.
+	 * 
+	 * Valid reference names must follow one of two patterns:
+	 *  - Top-level names must contain only capital letters and underscores,
+	 * and must begin and end with a letter. (e.g. "HEAD", "ORIG_HEAD").
+	 *  - Names prefixed with "refs/" can be almost anything.
+	 * You must avoid the characters '~', '^', ':', ' \ ', '?', '[',
+	 * and '*', and the sequences ".." and " @ {" which have special
+	 * meaning to revparse.
+	 * 
+	 * This function will throw an exception if a reference already
+	 * exists with the given name unless force is true,
+	 * in which case it will be overwritten.
+	 * 
+	 * The signature and message for the reflog will be ignored if
+	 * the reference does not belong in the standard set
+	 * (HEAD, branches and remote-tracking branches) and and it does not have a reflog.
      *
-     * The reference will be created in the repository and written
-     * to the disk.
-     *
-     * If `overwrite` is true and there already exists a reference
-     * with the same name, it will be overwritten.
-     *
+     * @param name The name of the reference
+     * @param id The object id pointed to by the reference.
+     * @param force Overwrite existing references
      * @throws Exception
      */
-    Reference* createRef(const std::string& name, const OId& id, bool overwrite = true);
+    Reference createReference(const std::string& name, const OId& id, bool force);
 
 	/**
 	 * Create a new symbolic reference.
 	 *
-	 * The reference will be created in the repository and written
-	 * to the disk.
+	 * A symbolic reference is a reference name that refers to another
+	 * reference name.  If the other name moves, the symbolic name will move,
+	 * too.  As a simple example, the "HEAD" reference might refer to
+	 * "refs/heads/master" while on the "master" branch of a repository.
 	 *
-	 * The generated reference must be freed by the user.
+	 * The symbolic reference will be created in the repository and written to
+	 * the disk.  The generated reference object must be freed by the user.
 	 *
-	 * If `force` is true and there already exists a reference
-	 * with the same name, it will be overwritten.
+	 * Valid reference names must follow one of two patterns:
+	 *
+	 * 1. Top-level names must contain only capital letters and underscores,
+	 *    and must begin and end with a letter. (e.g. "HEAD", "ORIG_HEAD").
+	 * 2. Names prefixed with "refs/" can be almost anything.  You must avoid
+	 *    the characters '~', '^', ':', '\\', '?', '[', and '*', and the
+	 *    sequences ".." and "@{" which have special meaning to revparse.
+	 *
+	 * This function will return an error if a reference already exists with the
+	 * given name unless `force` is true, in which case it will be overwritten.
 	 *
 	 * @param name Reference name
 	 * @param target Reference target
@@ -342,7 +378,7 @@ public:
 	 * @return Created reference.
      * @throws Exception
 	 */
-	Reference* createSymbolicReference(const std::string& name, const std::string& target, bool force=false);
+	Reference createSymbolicReference(const std::string& name, const std::string& target, bool force);
 
     /**
      * Create a new commit in the repository
@@ -453,7 +489,7 @@ public:
      */
     std::list<std::string> listReferences() const;
 
-	// TODO implement git_reference_foreach
+	// TODO implement git_reference_foreach and git_reference_foreach_name
 	
     /**
 	 * Get the Object Database for this repository.

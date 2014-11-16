@@ -60,10 +60,16 @@ public:
      * Get the OID pointed to by a reference.
      *
      * Only available if the reference is direct (i.e. not symbolic)
-     *
-     * @return a pointer to the oid if available, NULL otherwise
      */
     OId target() const;
+    
+    /**
+     * Return the peeled OID target of this reference.
+	 *
+	 * This peeled OID only applies to direct references that point to
+	 * a hard Tag object: it is the result of peeling such Tag.
+	 */
+	OId peeledTarget() const;
 
     /**
      * Get the full name of a reference
@@ -71,6 +77,20 @@ public:
      * @return the full name for the ref
      */
     std::string name() const;
+
+	/**
+	 * Get full name to the reference pointed to by a symbolic reference.
+	 *
+	 * Only available if the reference is symbolic.
+	 */
+	std::string symbolicTarget()const;
+
+	/**
+	 * Get the type of a reference.
+	 * 
+	 * Either direct (GIT_REF_OID) or symbolic (GIT_REF_SYMBOLIC)
+	 */
+	git_ref_t type()const;
 
     /**
      * Return true if the reference is direct (i.e. a reference to an OID)
@@ -130,6 +150,20 @@ public:
      */
     void setName(const std::string& name);
 
+	/**
+	 * Create a new reference with the same name as the given reference but a
+	 * different symbolic target. The reference must be a symbolic reference,
+	 * otherwise this will fail.
+	 *
+	 * The new reference will be written to disk, overwriting the given reference.
+	 *
+	 * The target name will be checked for validity.
+	 * 
+	 * @param target The new target for the reference
+	 * @return the new reference.
+	 */
+	Reference setSymbolicTarget(const std::string& target);
+
     /**
      * Set the OID target of a reference.
      *
@@ -184,6 +218,12 @@ public:
     bool isNull() const;
 
 	/**
+	 * Compare two references.
+	 */
+	int compare(const Reference& ref)const;
+
+
+	/**
 	 * Read the reflog for the given reference
 	 *
 	 * @return The reflog.
@@ -219,12 +259,14 @@ private:
  * Compare two references.
  */
 bool operator == (const Reference& ref1, const Reference& ref2);
-
-/**
- * Compare two references.
- */
 bool operator != (const Reference& ref1, const Reference& ref2);
+bool operator <= (const Reference& ref1, const Reference& ref2);
+bool operator >= (const Reference& ref1, const Reference& ref2);
+bool operator < (const Reference& ref1, const Reference& ref2);
+bool operator > (const Reference& ref1, const Reference& ref2);
 
+
+// Todo implement Reference iterator functions
 
 
 /**

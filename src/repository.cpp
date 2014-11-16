@@ -186,29 +186,26 @@ Config Repository::configuration() const
     return Config(cfg);
 }
 
-Reference* Repository::lookupRef(const std::string& name) const
+Reference Repository::lookupReference(const std::string& name) const
 {
     git_reference *ref = NULL;
     Exception::assert(git_reference_lookup(&ref, _repo.get(), name.c_str()));
-    Reference* qr = new Reference(ref);
-    return qr;
+    return Reference(ref);
 }
 
-OId* Repository::lookupRefOId(const std::string& name) const
+OId Repository::lookupReferenceOId(const std::string& name) const
 {
     git_oid oid;
     Exception::assert(git_reference_name_to_id(&oid, _repo.get(), name.c_str()));
-    return new OId(&oid);
+    return OId(&oid);
 }
 
-// TODO only available from v0.19.0
-/*Reference* Repository::lookupShorthandRef(const std::string& shorthand) const
+Reference Repository::lookupShorthandReference(const std::string& shorthand) const
 {
     git_reference *ref = NULL;
     Exception::assert(git_reference_dwim(&ref, _repo.get(), shorthand.c_str()));
-    Reference* qr = new Reference(ref);
-    return qr;
-}*/
+    return Reference(ref);
+}
 
 Commit Repository::lookupCommit(const OId& oid) const
 {
@@ -245,18 +242,18 @@ Object Repository::lookup(const OId &oid) const
     return Object(object);
 }
 
-Reference* Repository::createRef(const std::string& name, const OId& oid, bool overwrite)
+Reference Repository::createReference(const std::string& name, const OId& id, bool force)
 {
     git_reference *ref = NULL;
-    Exception::assert(git_reference_create(&ref, data(), name.c_str(), oid.constData(), overwrite));
-    return new Reference(ref);
+    Exception::assert(git_reference_create(&ref, data(), name.c_str(), id.constData(), force?1:0));
+    return Reference(ref);
 }
 
-Reference* Repository::createSymbolicReference(const std::string& name, const std::string& target, bool force)
+Reference Repository::createSymbolicReference(const std::string& name, const std::string& target, bool force)
 {
 	git_reference *ref;
 	Exception::assert(git_reference_symbolic_create(&ref, data(), name.c_str(), target.c_str(), force?1:0));
-	return new Reference(ref);
+	return Reference(ref);
 }
 
 OId Repository::createCommit(const std::string& ref,
@@ -271,7 +268,7 @@ OId Repository::createCommit(const std::string& ref,
 		p.push_back(parent.constData());
 
     OId oid;
-    Exception::assert(git_commit_create(oid.data(), _repo.get(), ref.c_str(), author.data(), committer.data(), NULL, message.c_str(), tree.data(), p.size(), p.data()));
+    Exception::assert(git_commit_create(oid.data(), _repo.get(), ref.c_str(), author.constData(), committer.constData(), NULL, message.c_str(), tree.data(), p.size(), p.data()));
     return oid;
 }
 
@@ -288,7 +285,7 @@ OId Repository::createCommit(const std::string& ref,
 		p.push_back(parent.constData());
 
     OId oid;
-    Exception::assert(git_commit_create(oid.data(), _repo.get(), ref.c_str(), author.data(), committer.data(), messageEncoding.c_str(), message.c_str(), tree.data(), p.size(), p.data()));
+    Exception::assert(git_commit_create(oid.data(), _repo.get(), ref.c_str(), author.constData(), committer.constData(), messageEncoding.c_str(), message.c_str(), tree.data(), p.size(), p.data()));
     return oid;
 }
 
@@ -311,7 +308,7 @@ OId Repository::createTag(const std::string& name,
 {
     OId oid;
     Exception::assert(git_tag_create(oid.data(), _repo.get(), name.c_str(), target.data(),
-                             tagger.data(), message.c_str(), overwrite));
+                             tagger.constData(), message.c_str(), overwrite));
     return oid;
 }
 

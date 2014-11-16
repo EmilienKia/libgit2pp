@@ -70,6 +70,17 @@ OId Reference::target() const
 	return OId(git_reference_target(_ref.get()));
 }
 
+OId Reference::peeledTarget() const
+{
+	return OId(git_reference_target_peel(_ref.get()));
+	return OId(git_reference_target_peel(_ref.get()));
+}
+
+git_ref_t Reference::type()const
+{
+	return git_reference_type(_ref.get());
+}
+
 bool Reference::isDirect() const
 {
     return git_reference_type(_ref.get()) == GIT_REF_OID;
@@ -85,6 +96,11 @@ std::string Reference::name() const
     return std::string(git_reference_name(_ref.get()));
 }
 
+std::string Reference::symbolicTarget()const
+{
+	return std::string(git_reference_symbolic_target(_ref.get()));
+}
+
 Reference Reference::resolve() const
 {
     git_reference *ref;
@@ -95,6 +111,13 @@ Reference Reference::resolve() const
 Repository Reference::owner() const
 {
     return Repository(git_reference_owner(_ref.get()));
+}
+
+Reference Reference::setSymbolicTarget(const std::string& target)
+{
+	git_reference *out;
+    Exception::assert(git_reference_symbolic_set_target(&out, _ref.get(), target.c_str()));
+    return Reference(out);
 }
 
 void Reference::setTarget(const OId& oid)
@@ -139,6 +162,11 @@ bool Reference::isNull() const
     return data() == NULL;
 }
 
+int Reference::compare(const Reference& ref)const
+{
+	return git_reference_cmp(_ref.get(), ref._ref.get());
+}
+
 git_reference* Reference::data() const
 {
     return _ref.get();
@@ -152,12 +180,32 @@ const git_reference* Reference::constData() const
 
 bool operator == (const Reference& ref1, const Reference& ref2)
 {
-	return git_reference_cmp(ref1.data(), ref2.data()) == 0;
+	return ref1.compare(ref2) == 0;
 }
 
 bool operator != (const Reference& ref1, const Reference& ref2)
 {
-	return git_reference_cmp(ref1.data(), ref2.data()) != 0;
+	return ref1.compare(ref2) != 0;
+}
+
+bool operator >= (const Reference& ref1, const Reference& ref2)
+{
+	return ref1.compare(ref2) >= 0;
+}
+
+bool operator <= (const Reference& ref1, const Reference& ref2)
+{
+	return ref1.compare(ref2) <= 0;
+}
+
+bool operator > (const Reference& ref1, const Reference& ref2)
+{
+	return ref1.compare(ref2) > 0;
+}
+
+bool operator < (const Reference& ref1, const Reference& ref2)
+{
+	return ref1.compare(ref2) < 0;
 }
 
 
