@@ -1,7 +1,7 @@
 /* -*- Mode: C++; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-  */
 /*
  * libgit2pp
- * Copyright (C) 2013 Émilien Kia <emilien.kia@gmail.com>
+ * Copyright (C) 2013-2014 Émilien Kia <emilien.kia@gmail.com>
  * 
  * libgit2pp is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -31,6 +31,7 @@ namespace git2
 {
 
 class Blob;
+class Branch;
 class Commit;
 class Config;
 class Database;
@@ -287,6 +288,16 @@ public:
      */
     Commit lookupCommit(const OId& oid) const;
 
+	/**
+	 * Lookup a branch by its name in a repository.
+	 * 
+	 * @param branchName Name of the branch to be looked-up;
+	 * this name is validated for consistency.
+	 * @param branchType Type of the considered branch.
+	 * This should be valued with either GIT_BRANCH_LOCAL or GIT_BRANCH_REMOTE.
+	 */
+	Branch lookupBranch(const std::string& branchName, git_branch_t branchType);
+
     /**
      * Lookup a tag object from the repository.
      *
@@ -398,6 +409,21 @@ public:
                          const std::string& message,
                          const Tree& tree,
                          const std::list<Commit>& parents);
+
+	/**
+	 * Create a new branch pointing at a target commit
+	 * 
+	 * A new direct reference will be created pointing to this target commit.
+	 * If force is true and a reference already exists with the given name, it'll be replaced.
+	 * The branch name will be checked for validity.
+	 * 
+	 * @param branchName Name for the branch; this name is validated for consistency.
+	 * It should also not conflict with an already existing branch name.
+	 * @param target Commit to which this branch should point.
+	 * This object must belong to this repository.
+	 * @param force Overwrite existing branch.
+	 */
+	Branch createBranch(const std::string& branchName, const Commit& target, bool force);
 
     /**
      * Create a new lightweight tag pointing at a target object
@@ -580,6 +606,23 @@ public:
 	 * @throws Exception
 	 */
 	std::list<std::string> listRemote();
+	
+	/**
+	 * Return the name of the reference supporting the remote tracking branch,
+	 * given the name of a local branch reference.
+	 * 
+	 * @param canonicalBranchName name of the local branch.
+	 * @return Remote tracking branch name. Empty if not found.
+	 */
+	std::string getBranchUpstreamName(const std::string& canonicalBranchName);
+	
+	/**
+	 * Return the name of remote that the remote tracking branch belongs to.
+	 * 
+	 * @param canonicalBranchName name of the local branch.
+	 * @return Remote tracking remote name. Empty if not found.
+	 */
+	 std::string getBranchRemoteName(const std::string& canonicalBranchName);
 	
     git_repository* data() const;
     const git_repository* constData() const;

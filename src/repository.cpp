@@ -1,7 +1,7 @@
 /* -*- Mode: C++; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-  */
 /*
  * libgit2pp
- * Copyright (C) 2013 Émilien Kia <emilien.kia@gmail.com>
+ * Copyright (C) 2013-2014 Émilien Kia <emilien.kia@gmail.com>
  * 
  * libgit2pp is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -20,6 +20,7 @@
 #include "repository.hpp"
 
 #include "blob.hpp"
+#include "branch.hpp"
 #include "commit.hpp"
 #include "config.hpp"
 #include "database.hpp"
@@ -214,6 +215,13 @@ Commit Repository::lookupCommit(const OId& oid) const
     return Commit(commit);
 }
 
+Branch Repository::lookupBranch(const std::string& branchName, git_branch_t branchType)
+{
+    git_reference *ref = NULL;
+    Exception::assert(git_branch_lookup(&ref, _repo.get(), branchName.c_str(), branchType));
+    return Branch(ref);	
+}
+
 Tag Repository::lookupTag(const OId& oid) const
 {
     git_tag *tag = NULL;
@@ -289,6 +297,12 @@ OId Repository::createCommit(const std::string& ref,
     return oid;
 }
 
+Branch Repository::createBranch(const std::string& branchName, const Commit& target, bool force)
+{
+	git_reference *out;
+	Exception::assert(git_branch_create(&out, data(), branchName.c_str(), target.constData(), force?1:0));
+	return Branch(out);
+}
 
 OId Repository::createTag(const std::string& name,
                                   const Object& target,
@@ -455,6 +469,35 @@ std::list<std::string> Repository::listRemote()
     return list;
 }
 
+std::string Repository::getBranchUpstreamName(const std::string& canonicalBranchName)
+{
+	char buffer[GIT_PATH_MAX];
+	int res = git_branch_upstream_name(buffer, GIT_PATH_MAX, data(), canonicalBranchName.c_str());
+	if(res==GIT_ENOTFOUND)
+		return "";
+	else if(res>0)
+		return std::string(buffer, res-1);
+	else
+	{
+		Exception::assert(res);
+		return "";
+	}
+}
+
+std::string Repository::getBranchRemoteName(const std::string& canonicalBranchName)
+{
+	char buffer[GIT_PATH_MAX];
+	int res = git_branch_remote_name(buffer, GIT_PATH_MAX, data(), canonicalBranchName.c_str());
+	if(res==GIT_ENOTFOUND)
+		return "";
+	else if(res>0)
+		return std::string(buffer, res-1);
+	else
+	{
+		Exception::assert(res);
+		return "";
+	}
+}
 
 git_repository* Repository::data() const
 {
@@ -466,8 +509,4 @@ const git_repository* Repository::constData() const
     return _repo.get();
 }
 
-
-
-
 } // namespace git2
-

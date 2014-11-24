@@ -22,6 +22,8 @@ lib_LTLIBRARIES =  \
 libgit2pp_la_SOURCES =  \
 	blob.cpp \
 	blob.hpp \
+	branch.cpp \
+	branch.hpp \
 	commit.cpp \
 	commit.hpp \
 	config.cpp \
