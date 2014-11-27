@@ -449,6 +449,13 @@ Remote* Repository::createRemote(const std::string& name, const std::string& url
 	return new Remote(remote);
 }
 
+Remote* Repository::createMemoryRemote(const std::string& fetch, const std::string& url)
+{
+	git_remote *remote;
+	Exception::assert(git_remote_create_inmemory(&remote, data(), fetch.c_str(), url.c_str()));
+	return new Remote(remote);
+}
+
 Remote* Repository::getRemote(const std::string& name)
 {
 	git_remote *remote;
@@ -456,9 +463,9 @@ Remote* Repository::getRemote(const std::string& name)
 	return new Remote(remote);
 }
 
-std::list<std::string> Repository::listRemote()
+std::vector<std::string> Repository::listRemote()
 {
-    std::list<std::string> list;
+    std::vector<std::string> list;
     git_strarray repos;
     Exception::assert(git_remote_list(&repos, data()));
     for(size_t i = 0; i < repos.count; ++i)

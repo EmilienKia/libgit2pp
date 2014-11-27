@@ -1,7 +1,7 @@
 /* -*- Mode: C++; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-  */
 /*
  * libgit2pp
- * Copyright (C) 2013 Émilien Kia <emilien.kia@gmail.com>
+ * Copyright (C) 2013-2014 Émilien Kia <emilien.kia@gmail.com>
  * 
  * libgit2pp is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -23,6 +23,7 @@
 #include <git2.h>
 
 #include <string>
+#include <vector>
 
 namespace git2
 {
@@ -56,9 +57,31 @@ public:
 	std::string dst()const;
 
 	/**
+	 * Get the refspec's string
+	 */
+	std::string str()const;
+	
+	/**
+	 * Get the force update setting
+	 */
+	bool force()const;
+
+	/**
+	 * Get the refspec's direction.
+	 * 
+	 * @return GIT_DIRECTION_FETCH or GIT_DIRECTION_PUSH
+	 */
+	git_direction direction()const;
+
+	/**
 	 * Check if a refspec's source descriptor matches a reference
 	 */
-	bool matches(const std::string& refname)const;
+	bool sourceMatches(const std::string& refname)const;
+
+	/**
+	 * Check if a refspec's destination descriptor matches a reference
+	 */
+	bool destinationMatches(const std::string& refname)const;
 
 	/**
 	 * Transform a reference to its target following the refspec's rules
@@ -68,6 +91,16 @@ public:
 	 * @throws Exception
 	 */
 	std::string transform(const std::string& name)const;
+	 
+	 /**
+	  * Transform a target reference to its source reference following the refspec's rules
+	  * 
+	  * @param name the name of the reference to transform
+	  * @return The source reference name.
+	  * @throws Exception
+	  */
+	std::string rtransform(const std::string& name)const;
+	  
 	 
 	const git_refspec *constData()const;
 	
@@ -81,11 +114,6 @@ private:
 class Remote
 {
 public:
-	enum Direction {
-		Fetch = GIT_DIRECTION_FETCH,
-		Push  = GIT_DIRECTION_PUSH
-	};
-
     /**
      * Constructor.
      */
@@ -106,12 +134,81 @@ public:
 	/**
 	 * Get the remote's name
 	 */
-	std::string name();
+	std::string name()const;
 
 	/**
 	 * Get the remote's url
 	 */
-	std::string url();
+	std::string url()const;
+
+	/**
+	 * Get the remote's url for pushing
+	 */
+	std::string pushUrl()const;
+
+	/**
+	 * Set the remote's url
+	 *
+	 * Existing connections will not be updated.
+	 */
+	void setUrl(const std::string& url);
+
+	/**
+	 * Set the remote's url for pushing
+	 *
+	 * Existing connections will not be updated.
+	 */
+	void setPushUrl(const std::string& url);
+
+	/**
+	 * Get the remote's list of fetch refspecs
+	 */
+	std::vector<std::string> getFetchRefspec();
+
+	/**
+	 * Get the remote's list of push refspecs
+	 */
+	std::vector<std::string> getPushRefspec();
+
+	/**
+	 * Clear the refspecs
+	 *
+	 * Remove all configured fetch and push refspecs from the remote.
+	 */
+	void clearRefspec();
+	
+	/**
+	 * Get the number of refspecs for a remote
+	 */
+	size_t refspecCount()const;
+	
+	/**
+	 * Get a refspec from the remote
+	 */
+	RefSpec getRefspec(size_t n);
+	
+	/**
+	 * Remove a refspec from the remote
+	 */
+	void removeRefspec(size_t n);
+
+	/**
+	 * Add a fetch refspec to the remote.
+	 * 
+	 * Convenience function for adding a single fetch refspec to the current list in the remote.
+	 * 
+	 * @param refspec the new fetch refspec
+	 */
+	void addFetch(const std::string& refspec);
+
+	/**
+	 * Add a push refspec to the remote.
+	 * 
+	 * Convenience function for adding a single push refspec to the current list in the remote.
+	 * 
+	 * @param refspec the new push refspec
+	 */
+	void addPush(const std::string& refspec);
 
 	/**
 	 * Open a connection to a remote
@@ -123,7 +220,7 @@ public:
 	 * @param direction whether you want to receive or send data
 	 * @throws Exception
 	 */
-	void connect(Direction direction);
+	void connect(git_direction direction);
 
 	/**
 	 * Check whether the remote is connected
@@ -140,10 +237,23 @@ public:
 	 * transport.
 	 */
 	void disconnect();
+	
+	/**
+	 * Cancel the operation
+	 *
+	 * At certain points in its operation, the network code checks whether
+	 * the operation has been cancelled and if so stops the operation.
+	 */
+	void stop();
 
 	// TODO Implement git_remote_ls
 	// TODO Implement git_remote_download
 	// TODO Implement git_remote_update_tips
+	
+	/**
+	 * Update the tips to the new state
+	 */
+	void UpdateTips();
 	
 	/**
 	 * Return whether a string is a valid remote URL
@@ -158,6 +268,44 @@ public:
 	 * @param tranport The url to check
 	 */
 	static bool isSupportedUrl(const std::string& url);
+	
+	/**
+	 * Choose whether to check the server's certificate (applies to HTTPS only)
+	 */
+	void checkCert(bool check);
+	
+	// TODO implement git_remote_set_cred_acquire_cb
+	// TODO implement git_remote_set_transport
+	// TODO implement git_remote_set_callbacks
+	// TODO implement git_remote_stats
+	
+	/**
+	 * Retrieve the tag auto-follow setting
+	 */
+	git_remote_autotag_option_t autotag()const;
+	
+	/**
+	 * Set the tag auto-follow setting
+	 */
+	void setAutotags(git_remote_autotag_option_t value);
+	
+	// TODO implement git_remote_rename
+	
+	/**
+	 * Retrieve the update FETCH_HEAD setting.
+	 */
+	int updateFetchhead()const;
+	
+	/**
+	 * Sets the update FETCH_HEAD setting.  By default, FETCH_HEAD will be
+	 * updated on every fetch.  Set to 0 to disable.
+	 */
+	void setUpdateFetchhead(int value);
+	
+	/**
+	 * Ensure the remote name is well-formed.
+	 */
+	static bool isValidName(const std::string& name);
 	
 	git_remote* data() const;
     const git_remote* constData() const;

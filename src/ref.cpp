@@ -1,7 +1,7 @@
 /* -*- Mode: C++; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-  */
 /*
  * libgit2pp
- * Copyright (C) 2013 Émilien Kia <emilien.kia@gmail.com>
+ * Copyright (C) 2013-2014 Émilien Kia <emilien.kia@gmail.com>
  * 
  * libgit2pp is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -91,6 +91,16 @@ bool Reference::isSymbolic() const
     return git_reference_type(_ref.get()) == GIT_REF_SYMBOLIC;
 }
 
+bool Reference::isBranch() const
+{
+	return git_reference_is_branch(_ref.get()) != 0;
+}
+
+bool Reference::isRemote() const
+{
+	return git_reference_is_remote(_ref.get());
+}
+
 std::string Reference::name() const
 {
     return std::string(git_reference_name(_ref.get()));
@@ -167,6 +177,18 @@ int Reference::compare(const Reference& ref)const
 	return git_reference_cmp(_ref.get(), ref._ref.get());
 }
 
+bool Reference::isValidName(const std::string& name)
+{
+	return git_reference_is_valid_name(name.c_str());
+}
+
+std::string Reference::normalizeName(const std::string& name, unsigned int flags)
+{
+	char buffer[GIT_PATH_MAX];
+	Exception::assert(git_reference_normalize_name(buffer, GIT_PATH_MAX-1, name.c_str(), flags));
+	return std::string(buffer);
+}
+
 git_reference* Reference::data() const
 {
     return _ref.get();
@@ -227,12 +249,27 @@ RefLog::~RefLog()
 {
 }
 
+void RefLog::append(const OId& id, const Signature& commiter, const std::string& msg)
+{
+	Exception::assert(git_reflog_append(data(), id.constData(), commiter.constData(), msg.empty()?NULL:msg.c_str()));
+}
+
+void RefLog::drop(size_t idx, bool rewrite)
+{
+	Exception::assert(git_reflog_drop(data(), idx, rewrite?1:0));
+}
+
+void RefLog::write()
+{
+	Exception::assert(git_reflog_write(data()));
+}
+
 unsigned int RefLog::getEntryCount()
 {
 	return git_reflog_entrycount(data());
 }
 
-RefLogEntry* RefLog::getEntry(unsigned int idx)
+RefLogEntry* RefLog::getEntry(size_t idx)
 {
 	const git_reflog_entry * entry = git_reflog_entry_byindex(data(), idx);
 	if(entry!=NULL)
@@ -286,7 +323,7 @@ OId RefLogEntry::getNewOId() const
 	return OId(git_reflog_entry_id_new(data()));
 }
 
-Signature* RefLogEntry::getSignature() const
+Signature* RefLogEntry::getCommitter() const
 {
 	const git_signature * sign = git_reflog_entry_committer(data());
 	if(sign!=NULL)

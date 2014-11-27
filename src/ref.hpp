@@ -1,7 +1,7 @@
 /* -*- Mode: C++; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-  */
 /*
  * libgit2pp
- * Copyright (C) 2013 Émilien Kia <emilien.kia@gmail.com>
+ * Copyright (C) 2013-2014 Émilien Kia <emilien.kia@gmail.com>
  * 
  * libgit2pp is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -102,6 +102,20 @@ public:
      */
     bool isSymbolic() const;
 
+	/**
+	 * Check if a reference is a local branch.
+	 * 
+     * @return true when the reference lives in the refs/heads namespace.
+     */
+	bool isBranch() const;
+	
+	/**
+	 * Check if a reference is a remote tracking branch.
+	 * 
+     * @return true when the reference lives in the refs/remotes namespace.
+     */
+	bool isRemote() const;
+	
     /**
      * Resolve a symbolic reference
      *
@@ -244,8 +258,37 @@ public:
 	 *
 	 * @throws Exception
 	 */
-	 void deleteRefLog();
+	void deleteRefLog();
 	
+	/**
+	 * Ensure the reference name is well-formed.
+	 * 
+	 * Valid reference names must follow one of two patterns:
+	 *   - Top-level names must contain only capital letters and underscores,
+	 * and must begin and end with a letter. (e.g. "HEAD", "ORIG_HEAD").
+	 *   - Names prefixed with "refs/" can be almost anything.
+	 * You must avoid the characters '~', '^', ':', ' \ ', '?', '[', and '*',
+	 * and the sequences ".." and " @ {" which have special meaning to revparse.
+	 * 
+     * @param name name to be checked.
+     * @return true if the reference name is acceptable
+     */
+	static bool isValidName(const std::string& name);
+	
+	/**
+	 * Normalize reference name and check validity.
+	 * 
+	 * This will normalize the reference name by removing any leading slash '/' 
+	 * characters and collapsing runs of adjacent slashes between name
+	 * components into a single slash.
+	 * 
+	 * Once normalized, if the reference name is valid, it will be returned.
+	 * 
+     * @param name Reference name to be checked.
+	 * @param flags Flags to constrain name validation rules
+     * @return Normalized name if valid.
+     */
+	static std::string normalizeName(const std::string& name, unsigned int flags=GIT_REF_FORMAT_NORMAL);
 
     git_reference* data() const;
     const git_reference* constData() const;
@@ -290,6 +333,32 @@ public:
 	 */
 	~RefLog();
 
+	/**
+	 * Add a new entry to the in-memory reflog.
+	 *
+	 * @param id the OID the reference is now pointing to
+	 * @param committer the signature of the committer
+	 * @param msg the reflog message
+	 */
+	void append(const OId& id, const Signature& commiter, const std::string& msg);
+
+	/**
+	 * Remove an entry from the reflog by its index.
+	 * 
+	 * To ensure there's no gap in the log history, set rewrite param value to true.
+	 * When deleting entry n, member old_oid of entry n-1 (if any) will
+	 * be updated with the value of member new_oid of entry n+1.
+	 * 
+	 * @param idx the position of the entry to remove.
+	 * Should be greater than or equal to 0 (zero) and less than getEntryCount.
+	 * @param rewrite true to rewrite the history.
+	 */
+	void drop(size_t idx, bool rewrite);
+
+	/**
+	 * Write an existing in-memory reflog object back to disk using an atomic file lock.
+	 */
+	void write();
 
 	/**
 	 * Get the number of log entries in a reflog
@@ -304,7 +373,9 @@ public:
 	 * @param idx The position to lookup
 	 * @return The entry; NULL if not found
 	 */
-	RefLogEntry* getEntry(unsigned int idx);
+	RefLogEntry* getEntry(size_t idx);
+	
+	
 	
 	git_reflog* data() const;
     const git_reflog* constData() const;
@@ -354,7 +425,7 @@ public:
 	 *
 	 * @return the committer
 	 */
-	Signature* getSignature() const;
+	Signature* getCommitter() const;
 
 	/**
 	 * Get the log msg

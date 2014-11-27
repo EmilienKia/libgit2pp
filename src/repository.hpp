@@ -41,6 +41,7 @@ class OId;
 class Tag;
 class Tree;
 class Reference;
+class RefLog;
 class Remote;
 class Signature;
 class StatusList;
@@ -590,6 +591,18 @@ public:
 	 * @throws Exception
 	 */
 	Remote* createRemote(const std::string& name, const std::string& url);
+	
+	/**
+	 * Create a remote in memory
+	 *
+	 * Create a remote with the given refspec in memory. You can use
+	 * this when you have a URL instead of a remote's name.  Note that in-memory
+	 * remotes cannot be converted to persisted remotes.
+	 *
+	 * @param fetch the fetch refspec to use for this remote. May be empty for defaults.
+	 * @param url the remote repository's URL
+	 */
+	Remote* createMemoryRemote(const std::string& fetch, const std::string& url);
 
 	/**
 	 * Get the information for a particular remote
@@ -605,7 +618,7 @@ public:
 	 * 
 	 * @throws Exception
 	 */
-	std::list<std::string> listRemote();
+	std::vector<std::string> listRemote();
 	
 	/**
 	 * Return the name of the reference supporting the remote tracking branch,
