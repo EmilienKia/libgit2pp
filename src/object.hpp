@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
 
-#ifndef _OBJECT_HPP_
-#define _OBJECT_HPP_
+#ifndef _GIT2PP_OBJECT_HPP_
+#define _GIT2PP_OBJECT_HPP_
 
 #include <git2.h>
 
@@ -223,5 +223,5 @@ private:
 };
 
 } // namespace git2
-#endif // _OBJECT_HPP_
+#endif // _GIT2PP_OBJECT_HPP_
 

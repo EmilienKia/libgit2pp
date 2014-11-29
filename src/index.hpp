@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
 
-#ifndef _INDEX_HPP_
-#define _INDEX_HPP_
+#ifndef _GIT2PP_INDEX_HPP_
+#define _GIT2PP_INDEX_HPP_
 
 #include <git2.h>
 
@@ -368,5 +368,5 @@ private:
 
 } // namespace git2
 
-#endif // _INDEX_HPP_
+#endif // _GIT2PP_INDEX_HPP_
 

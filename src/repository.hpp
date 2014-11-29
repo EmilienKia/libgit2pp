@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
 
-#ifndef _REPOSITORY_HPP_
-#define _REPOSITORY_HPP_
+#ifndef _GIT2PP_REPOSITORY_HPP_
+#define _GIT2PP_REPOSITORY_HPP_
 
 #include <git2.h>
 
@@ -646,5 +646,5 @@ private:
 };
 
 } // namespace git2
-#endif // _REPOSITORY_HPP_
+#endif // _GIT2PP_REPOSITORY_HPP_
 

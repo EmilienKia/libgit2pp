@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
 
-#ifndef _TREE_HPP_
-#define _TREE_HPP_
+#ifndef _GIT2PP_TREE_HPP_
+#define _GIT2PP_TREE_HPP_
 
 #include <git2.h>
 
@@ -136,5 +136,5 @@ public:
 };
 
 } // namespace git2
-#endif // _BLOB_HPP_
+#endif // _GIT2PP_TREE_HPP_
 

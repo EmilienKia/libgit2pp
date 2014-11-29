@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
 
-#ifndef _REF_HPP_
-#define _REF_HPP_
+#ifndef _GIT2PP_REF_HPP_
+#define _GIT2PP_REF_HPP_
 
 #include <git2.h>
 
@@ -440,5 +440,5 @@ private:
 };
 
 } // namespace git2
-#endif // _REF_HPP_
+#endif // _GIT2PP_REF_HPP_
 

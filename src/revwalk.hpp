@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
 
-#ifndef _REVWALK_HPP_
-#define _REVWALK_HPP_
+#ifndef _GIT2PP_REVWALK_HPP_
+#define _GIT2PP_REVWALK_HPP_
 
 #include <git2.h>
 
@@ -255,5 +255,5 @@ private:
 
 
 } // namespace git2
-#endif // _REVWALK_HPP_
+#endif // _GIT2PP_REVWALK_HPP_
 

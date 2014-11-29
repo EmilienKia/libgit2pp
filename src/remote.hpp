@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
 
-#ifndef _REMOTE_HPP_
-#define _REMOTE_HPP_
+#ifndef _GIT2PP_REMOTE_HPP_
+#define _GIT2PP_REMOTE_HPP_
 
 #include <git2.h>
 
@@ -314,5 +314,5 @@ private:
 };
 
 } // namespace git2
-#endif // _BLOB_HPP_
+#endif // _GIT2PP_BLOB_HPP_
 

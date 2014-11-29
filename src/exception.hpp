@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
 
-#ifndef _EXCEPTION_HPP_
-#define _EXCEPTION_HPP_
+#ifndef _GIT2PP_EXCEPTION_HPP_
+#define _GIT2PP_EXCEPTION_HPP_
 
 #include <git2.h>
 
@@ -42,5 +42,5 @@ namespace git2
 	};
 
 } // namespace git2
-#endif // _EXCEPTION_HPP_
+#endif // _GIT2PP_EXCEPTION_HPP_
 

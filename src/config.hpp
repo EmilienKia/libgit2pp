@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
 
-#ifndef _CONFIG_HPP_
-#define _CONFIG_HPP_
+#ifndef _GIT2PP_CONFIG_HPP_
+#define _GIT2PP_CONFIG_HPP_
 
 #include <git2.h>
 
@@ -304,5 +304,5 @@ private:
 };
 
 } // namespace git2
-#endif // _CONFIG_HPP_
+#endif // _GIT2PP_CONFIG_HPP_
 

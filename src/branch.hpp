@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
 
-#ifndef _BRANCH_HPP_
-#define _BRANCH_HPP_
+#ifndef _GIT2PP_BRANCH_HPP_
+#define _GIT2PP_BRANCH_HPP_
 
 #include <git2.h>
 
@@ -105,5 +105,5 @@ private:
 };
 
 } // namespace git2
-#endif // _BRANCH_HPP_
+#endif // _GIT2PP_BRANCH_HPP_
 

@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
 
-#ifndef _OID_HPP_
-#define _OID_HPP_
+#ifndef _GIT2PP_OID_HPP_
+#define _GIT2PP_OID_HPP_
 
 #include <git2.h>
 
@@ -200,5 +200,5 @@ bool operator == (const OId &oid, const char* str);
 
 
 } // namespace git2
-#endif // _OID_HPP_
+#endif // _GIT2PP_OID_HPP_
 
