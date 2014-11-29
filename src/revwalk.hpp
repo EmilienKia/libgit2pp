@@ -22,6 +22,7 @@
 
 #include <git2.h>
 
+#include <memory>
 #include <string>
 
 namespace git2
@@ -54,12 +55,7 @@ public:
 
     typedef unsigned int SortModes; //!< Combination of SortMode
 
-    /**
-     * Create a new revision walker to iterate through a repo.
-     *
-     * @param repo the repo to walk through
-     */
-    RevWalk(const Repository& repository);
+    RevWalk(git_revwalk* revwalk);
 
     RevWalk( const RevWalk& revwalk );
 
@@ -122,6 +118,13 @@ public:
      */
     void push(const Reference& reference) const;
 
+	/**
+	 * Push the OID pointed to by a reference
+	 *
+	 * The reference must point to a commit.
+	 */
+	void pushRef(const std::string& refname);
+
     /**
      * Mark the references matching the given glob as a starting point.
      *
@@ -143,14 +146,12 @@ public:
     void pushHead() const;
 
     /**
-     * Uses the given range to perform the traversal.
-     *
-     * This method accepts a range in the form <commit1>..<commit2>,
-     * according to Git range syntax, i.e. walk all commits that are
-     * reachable from commit2 excluding those reachable from commit1.
+	 * Push and hide the respective endpoints of the given range.
+	 *
+	 * The range should be of the form <commit>..<commit>
+	 * The left-hand commit will be hidden and the right-hand commit pushed.
      */
-// TODO only available from v0.18.0
-//    void pushRange(const std::string& range) const;
+    void pushRange(const std::string& range) const;
 
     /**
      * Hide the commit with the given oid and its ancestors from the walker.
@@ -185,6 +186,13 @@ public:
      */
     void hide(const Reference& reference) const;
 
+	/**
+	 * Hide the OID pointed to by a reference
+	 *
+	 * The reference must point to a commit.
+	 */
+	void hideRef(const std::string& refname);
+
     /**
      * Hide the references matching the given glob and its ancestors from the walker.
      *
@@ -214,14 +222,6 @@ public:
     bool next(OId& oid) const;
 
     /**
-     * Get the next commit from the revision traversal and look it up in the owner repository.
-     *
-     * @param commit The next commit within the set repository, if it was found; otherwise an empty Commit.
-     * @return True when the commit was found.
-     */
-    bool next(Commit& commit);
-
-    /**
      * Change the sorting mode when iterating through the
      * repository's contents.
      * Changing the sorting mode resets the walker.
@@ -230,27 +230,13 @@ public:
      */
     void setSorting(SortModes sortMode);
 
-    /**
-     * Return a new repository object initialized to the repository
-     * on which this walker is operating.
-     *
-     * @return a copy of the repository being walked
-     */
-    Repository* repository();
-
-    /**
-     * Return the const repository on which this walker is operating.
-     *
-     * @return the repository being walked
-     */
-    const Repository* constRepository();
 
     git_revwalk* data() const;
     const git_revwalk* constData() const;
 
 private:
-    const Repository* _repo;
-    git_revwalk* _revwalk;
+    typedef std::shared_ptr<git_revwalk> ptr_type;
+    ptr_type _revwalk;
 };
 
 

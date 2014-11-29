@@ -29,6 +29,7 @@
 #include "oid.hpp"
 #include "ref.hpp"
 #include "remote.hpp"
+#include "revwalk.hpp"
 #include "signature.hpp"
 #include "status.hpp"
 #include "tag.hpp"
@@ -504,6 +505,13 @@ std::string Repository::getBranchRemoteName(const std::string& canonicalBranchNa
 		Exception::git2_assert(res);
 		return "";
 	}
+}
+
+RevWalk Repository::createRevWalk()
+{
+	git_revwalk *out;
+	git_revwalk_new(&out, data());
+	return RevWalk(out);
 }
 
 git_repository* Repository::data() const

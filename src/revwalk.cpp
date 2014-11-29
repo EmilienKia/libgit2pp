@@ -28,11 +28,21 @@
 namespace git2
 {
 
-
-RevWalk::RevWalk(const Repository& repository)
+namespace
 {
-    git_revwalk_new(&_revwalk, repository.data());
-    _repo = &repository;
+
+struct GitRevWalkDeleter{
+	void operator()(git_revwalk *repo){
+		git_revwalk_free(repo);
+	}
+};
+
+}
+
+
+RevWalk::RevWalk(git_revwalk* revwalk)
+{
+	_revwalk = ptr_type(revwalk,  GitRevWalkDeleter());
 }
 
 RevWalk::RevWalk( const RevWalk& revwalk ):
@@ -42,113 +52,97 @@ _revwalk(revwalk._revwalk)
 
 RevWalk::~RevWalk()
 {
-    git_revwalk_free(_revwalk);
 }
 
 void RevWalk::reset() const
 {
-    git_revwalk_reset(_revwalk);
+    git_revwalk_reset(data());
 }
 
 void RevWalk::push(const OId& oid) const
 {
-    Exception::git2_assert(git_revwalk_push(_revwalk, oid.constData()));
+    Exception::git2_assert(git_revwalk_push(data(), oid.constData()));
 }
 
 void RevWalk::push(const Commit& commit) const
 {
-    Exception::git2_assert(git_revwalk_push(_revwalk, commit.oid().constData()));
+    Exception::git2_assert(git_revwalk_push(data(), commit.oid().constData()));
 }
 
 void RevWalk::push(const Reference& reference) const
 {
-    Exception::git2_assert(git_revwalk_push_glob(_revwalk, reference.name().c_str()));
+    Exception::git2_assert(git_revwalk_push_glob(data(), reference.name().c_str()));
+}
+
+void RevWalk::pushRef(const std::string& refname)
+{
+	Exception::git2_assert(git_revwalk_push_ref(data(), refname.c_str()));
 }
 
 void RevWalk::push(const std::string& glob) const
 {
-    Exception::git2_assert(git_revwalk_push_glob(_revwalk, glob.c_str()));
+    Exception::git2_assert(git_revwalk_push_glob(data(), glob.c_str()));
 }
 
 void RevWalk::pushHead() const
 {
-    Exception::git2_assert(git_revwalk_push_head(_revwalk));
+    Exception::git2_assert(git_revwalk_push_head(data()));
 }
 
-// TODO only available from v0.18.0
-/*void RevWalk::pushRange(const std::string& range) const
+void RevWalk::pushRange(const std::string& range) const
 {
-    Exception::git2_assert(git_revwalk_push_range(_revwalk, range.c_str()));
-}*/
+    Exception::git2_assert(git_revwalk_push_range(data(), range.c_str()));
+}
 
 void RevWalk::hide(const OId& oid) const
 {
-    Exception::git2_assert(git_revwalk_hide(_revwalk, oid.constData()));
+    Exception::git2_assert(git_revwalk_hide(data(), oid.constData()));
 }
 
 void RevWalk::hide(const Commit& commit) const
 {
-    Exception::git2_assert(git_revwalk_hide(_revwalk, commit.oid().constData()));
+    Exception::git2_assert(git_revwalk_hide(data(), commit.oid().constData()));
 }
 
 void RevWalk::hide(const Reference& reference) const
 {
-    Exception::git2_assert(git_revwalk_hide_glob(_revwalk, reference.name().c_str()));
+    Exception::git2_assert(git_revwalk_hide_glob(data(), reference.name().c_str()));
+}
+
+void RevWalk::hideRef(const std::string& refname)
+{
+	Exception::git2_assert(git_revwalk_hide_ref(data(), refname.c_str()));
 }
 
 void RevWalk::hide(const std::string& glob) const
 {
-    Exception::git2_assert(git_revwalk_hide_glob(_revwalk, glob.c_str()));
+    Exception::git2_assert(git_revwalk_hide_glob(data(), glob.c_str()));
 }
 
 void RevWalk::hideHead() const
 {
-    Exception::git2_assert(git_revwalk_hide_head(_revwalk));
+    Exception::git2_assert(git_revwalk_hide_head(data()));
 }
 
 bool RevWalk::next(OId& oid) const
 {
-    int err = git_revwalk_next(oid.data(), _revwalk);
+    int err = git_revwalk_next(oid.data(), data());
     return (err == GIT_OK);
-}
-
-bool RevWalk::next(Commit& commit)
-{
-    OId oid;
-    int err = git_revwalk_next(oid.data(), _revwalk);
-
-    if ( (err != GIT_OK) || !oid.isValid() )
-        commit = Commit();
-    else
-        commit = constRepository()->lookupCommit(oid);
-
-    return !commit.isNull();
 }
 
 void RevWalk::setSorting(SortModes sm)
 {
-    git_revwalk_sorting(_revwalk, sm);
-}
-
-Repository* RevWalk::repository()
-{
-    Repository* repo = new Repository(git_revwalk_repository(_revwalk));
-    return repo;
-}
-
-const Repository* RevWalk::constRepository()
-{
-    return _repo;
+    git_revwalk_sorting(data(), sm);
 }
 
 git_revwalk* RevWalk::data() const
 {
-    return _revwalk;
+    return _revwalk.get();;
 }
 
 const git_revwalk* RevWalk::constData() const
 {
-    return _revwalk;
+    return _revwalk.get();;
 }
 
 

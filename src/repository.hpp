@@ -43,6 +43,7 @@ class Tree;
 class Reference;
 class RefLog;
 class Remote;
+class RevWalk;
 class Signature;
 class StatusList;
 class StatusOptions;
@@ -636,6 +637,12 @@ public:
 	 * @return Remote tracking remote name. Empty if not found.
 	 */
 	 std::string getBranchRemoteName(const std::string& canonicalBranchName);
+	
+	
+	/**
+	 * Create a revision walker for this repository.
+	 */
+	RevWalk createRevWalk();
 	
     git_repository* data() const;
     const git_repository* constData() const;
