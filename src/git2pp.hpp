@@ -38,7 +38,5 @@
 #include "git2pp/tag.hpp"
 #include "git2pp/tree.hpp"
 
-
-} // namespace git2
 #endif // _GIT2PP_HPP_
 
