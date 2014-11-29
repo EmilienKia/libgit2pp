@@ -4,6 +4,7 @@ dnl Created by Anjuta application wizard.
 AC_INIT(libgit2pp, 0.19.0)
 
 AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_AUX_DIR([aux])
 
 AM_INIT_AUTOMAKE([1.11])
 
