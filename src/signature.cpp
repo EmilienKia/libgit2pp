@@ -30,12 +30,12 @@ namespace git2
 
 SignatureBuilder::SignatureBuilder(const std::string& name, const std::string& email, time_t dateTime, int offset)
 {
-    Exception::assert(git_signature_new(&_sign, name.c_str(), email.c_str(), dateTime, offset));
+    Exception::git2_assert(git_signature_new(&_sign, name.c_str(), email.c_str(), dateTime, offset));
 }
 
 SignatureBuilder::SignatureBuilder(const std::string& name, const std::string& email)
 {
-    Exception::assert(git_signature_now(&_sign, name.c_str(), email.c_str()));
+    Exception::git2_assert(git_signature_now(&_sign, name.c_str(), email.c_str()));
 }
 
 SignatureBuilder::SignatureBuilder(const SignatureBuilder& sign)

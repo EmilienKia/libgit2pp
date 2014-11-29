@@ -45,7 +45,7 @@ std::string Exception::message() const throw()
 	return _msg;
 }
 
-int Exception::assert(int ret)
+int Exception::git2_assert(int ret)
 {
 	if(ret<0)
 	{

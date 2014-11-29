@@ -75,14 +75,14 @@ bool RefSpec::destinationMatches(const std::string& refname)const
 std::string RefSpec::transform(const std::string& name)const
 {
 	char buffer[GIT_PATH_MAX];
-	Exception::assert(git_refspec_transform(buffer, GIT_PATH_MAX, constData(), name.c_str()));
+	Exception::git2_assert(git_refspec_transform(buffer, GIT_PATH_MAX, constData(), name.c_str()));
 	return std::string(buffer);
 }
 
 std::string RefSpec::rtransform(const std::string& name)const
 {
 	char buffer[GIT_PATH_MAX];
-	Exception::assert(git_refspec_rtransform(buffer, GIT_PATH_MAX, constData(), name.c_str()));
+	Exception::git2_assert(git_refspec_rtransform(buffer, GIT_PATH_MAX, constData(), name.c_str()));
 	return std::string(buffer);
 }
 
@@ -108,7 +108,7 @@ Remote::~Remote()
 
 void Remote::save()
 {
-	Exception::assert(git_remote_save(data()));
+	Exception::git2_assert(git_remote_save(data()));
 }
 
 std::string Remote::name()const
@@ -128,24 +128,24 @@ std::string Remote::pushUrl()const
 
 void Remote::setUrl(const std::string& url)
 {
-	Exception::assert(git_remote_set_url(data(), url.c_str()));
+	Exception::git2_assert(git_remote_set_url(data(), url.c_str()));
 }
 
 void Remote::setPushUrl(const std::string& url)
 {
-	Exception::assert(git_remote_set_pushurl(data(), url.c_str()));
+	Exception::git2_assert(git_remote_set_pushurl(data(), url.c_str()));
 }
 
 void Remote::addFetch(const std::string& refspec)
 {
-	Exception::assert(git_remote_add_fetch(data(), refspec.c_str()));
+	Exception::git2_assert(git_remote_add_fetch(data(), refspec.c_str()));
 }
 
 std::vector<std::string> Remote::getFetchRefspec()
 {
     std::vector<std::string> list;
     git_strarray arr;
-    Exception::assert(git_remote_get_fetch_refspecs(&arr, data()));
+    Exception::git2_assert(git_remote_get_fetch_refspecs(&arr, data()));
     for(size_t i = 0; i < arr.count; ++i)
     {
         list.push_back(std::string(arr.strings[i]));
@@ -156,14 +156,14 @@ std::vector<std::string> Remote::getFetchRefspec()
 
 void Remote::addPush(const std::string& refspec)
 {
-	Exception::assert(git_remote_add_push(data(), refspec.c_str()));
+	Exception::git2_assert(git_remote_add_push(data(), refspec.c_str()));
 }
 
 std::vector<std::string> Remote::getPushRefspec()
 {
     std::vector<std::string> list;
     git_strarray arr;
-    Exception::assert(git_remote_get_push_refspecs(&arr, data()));
+    Exception::git2_assert(git_remote_get_push_refspecs(&arr, data()));
     for(size_t i = 0; i < arr.count; ++i)
     {
         list.push_back(std::string(arr.strings[i]));
@@ -189,12 +189,12 @@ RefSpec Remote::getRefspec(size_t n)
 
 void Remote::removeRefspec(size_t n)
 {
-	Exception::assert(git_remote_remove_refspec(data(), n));
+	Exception::git2_assert(git_remote_remove_refspec(data(), n));
 }
 
 void Remote::connect(git_direction direction)
 {
-	Exception::assert(git_remote_connect(data(), direction));
+	Exception::git2_assert(git_remote_connect(data(), direction));
 }
 
 bool Remote::isConnected()
@@ -214,7 +214,7 @@ void Remote::stop()
 
 void Remote::UpdateTips()
 {
-	Exception::assert(git_remote_update_tips(data()));
+	Exception::git2_assert(git_remote_update_tips(data()));
 }
 
 bool Remote::isValidUrl(const std::string& url)

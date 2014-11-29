@@ -59,7 +59,7 @@ Branch::~Branch()
 
 void Branch::del()
 {
-	Exception::assert(git_branch_delete(data()));
+	Exception::git2_assert(git_branch_delete(data()));
 }
 
 bool Branch::isHead()const
@@ -70,27 +70,27 @@ bool Branch::isHead()const
 void Branch::move(const std::string& branchName, bool force)
 {
 	git_reference *out;
-	Exception::assert(git_branch_move(&out, data(), branchName.c_str(), force?1:0));
+	Exception::git2_assert(git_branch_move(&out, data(), branchName.c_str(), force?1:0));
 	_ref = ptr_type(out, GitReferenceDeleter());
 }
 
 std::string Branch::name() const
 {
 	const char *out;
-	Exception::assert(git_branch_name(&out, data()));
+	Exception::git2_assert(git_branch_name(&out, data()));
 	return std::string(out);
 }
 
 Branch Branch::upstream() const
 {
 	git_reference *out;
-	Exception::assert(git_branch_upstream(&out, data()));
+	Exception::git2_assert(git_branch_upstream(&out, data()));
 	return Branch(out);
 }
 
 void Branch::setUpstream(const std::string& upstreamName)
 {
-	Exception::assert(git_branch_set_upstream(data(), upstreamName.c_str()));
+	Exception::git2_assert(git_branch_set_upstream(data(), upstreamName.c_str()));
 }
 
 

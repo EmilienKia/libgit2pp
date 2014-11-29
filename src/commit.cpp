@@ -96,7 +96,7 @@ Signature Commit::author() const
 Tree Commit::tree() const
 {
     git_tree *tree;
-    Exception::assert(git_commit_tree(&tree, data()));
+    Exception::git2_assert(git_commit_tree(&tree, data()));
     return Tree(tree);
 }
 
@@ -112,7 +112,7 @@ unsigned int Commit::parentCount() const
 Commit Commit::parent(unsigned n) const
 {
     git_commit *parent;
-    Exception::assert(git_commit_parent(&parent, data(), n));
+    Exception::git2_assert(git_commit_parent(&parent, data(), n));
     return Commit(parent);
 }
 
@@ -124,7 +124,7 @@ OId Commit::parentId(unsigned n) const
 Commit Commit::getNthGenAncestor(unsigned n) const
 {
     git_commit *ancestor;
-    Exception::assert(git_commit_nth_gen_ancestor(&ancestor, data(), n));
+    Exception::git2_assert(git_commit_nth_gen_ancestor(&ancestor, data(), n));
     return Commit(ancestor);
 }
 

@@ -36,7 +36,7 @@ namespace git2
 		const char *what() const throw();
 		std::string message() const throw();
 
-		static int assert(int ret);
+		static int git2_assert(int ret);
 	private:
 		std::string _msg;
 	};

@@ -103,7 +103,7 @@ void Index::open(const std::string& indexPath)
 {
     _index.reset();
     git_index *index = NULL;
-    Exception::assert(git_index_open(&index, indexPath.c_str()));
+    Exception::git2_assert(git_index_open(&index, indexPath.c_str()));
     _index = ptr_type(index, GitIndexDeleter());
 }
 
@@ -114,7 +114,7 @@ unsigned int Index::getCapabilities()const
 
 void Index::setCapabilities(unsigned int caps)
 {
-	Exception::assert(git_index_set_caps(data(), caps));
+	Exception::git2_assert(git_index_set_caps(data(), caps));
 }
 
 void Index::clear()
@@ -124,23 +124,23 @@ void Index::clear()
 
 void Index::read() const
 {
-    Exception::assert(git_index_read(data()));
+    Exception::git2_assert(git_index_read(data()));
 }
 
 void Index::write()
 {
-    Exception::assert(git_index_write(data()));
+    Exception::git2_assert(git_index_write(data()));
 }
 
 void Index::readTree(Tree& tree)
 {
-	Exception::assert(git_index_read_tree(data(), tree.data()));
+	Exception::git2_assert(git_index_read_tree(data(), tree.data()));
 }
 
 OId Index::writeTree()
 {
 	git_oid oid;
-	Exception::assert(git_index_write_tree(&oid, data()));
+	Exception::git2_assert(git_index_write_tree(&oid, data()));
 	return OId(&oid);
 }
 
@@ -157,12 +157,12 @@ bool Index::find(const std::string& path)
 
 void Index::remove(const std::string& path, int stage)
 {
-    Exception::assert(git_index_remove(data(), path.c_str(), stage));
+    Exception::git2_assert(git_index_remove(data(), path.c_str(), stage));
 }
 
 void Index::removeDirectory(const std::string& dir, int stage)
 {
-	Exception::assert(git_index_remove_directory(data(), dir.c_str(), stage));
+	Exception::git2_assert(git_index_remove_directory(data(), dir.c_str(), stage));
 }
 
 IndexEntry Index::get(size_t n) const
@@ -177,29 +177,29 @@ IndexEntry Index::get(const std::string& path, int stage) const
 
 void Index::add(const IndexEntry& entry)
 {
-	Exception::assert(git_index_add(data(), entry.constData()));
+	Exception::git2_assert(git_index_add(data(), entry.constData()));
 }
 
 void Index::add(const std::string& path)
 {
-	Exception::assert(git_index_add_bypath(data(),path.c_str()));
+	Exception::git2_assert(git_index_add_bypath(data(),path.c_str()));
 }
 
 void Index::remove(const std::string& path)
 {
-	Exception::assert(git_index_remove_bypath(data(),path.c_str()));
+	Exception::git2_assert(git_index_remove_bypath(data(),path.c_str()));
 }
 
 void Index::addConflict(const IndexEntry& ancestor, const IndexEntry& our, const IndexEntry& their)
 {
-	Exception::assert(git_index_conflict_add(data(), ancestor.constData(), our.constData(), their.constData()));
+	Exception::git2_assert(git_index_conflict_add(data(), ancestor.constData(), our.constData(), their.constData()));
 }
 
 void Index::getConflict(IndexEntry& ancestor, IndexEntry& our, IndexEntry& their, const std::string& path)
 {
 	// TODO rework it !
 	const git_index_entry *out_ancestor, *out_our, *out_their;
-	Exception::assert(git_index_conflict_get(&out_ancestor, &out_our, &out_their, data(), path.c_str()));
+	Exception::git2_assert(git_index_conflict_get(&out_ancestor, &out_our, &out_their, data(), path.c_str()));
 	ancestor = IndexEntry(out_ancestor);
 	our = IndexEntry(out_our);
 	their = IndexEntry(out_their);
@@ -207,7 +207,7 @@ void Index::getConflict(IndexEntry& ancestor, IndexEntry& our, IndexEntry& their
 
 void Index::removeConflict(const std::string& path)
 {
-	Exception::assert(git_index_conflict_remove(data(), path.c_str()));
+	Exception::git2_assert(git_index_conflict_remove(data(), path.c_str()));
 }
 
 void Index::cleanupConflict()

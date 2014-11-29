@@ -76,47 +76,47 @@ Config Config::openOnDisk(const std::string& path)
 bool Config::parseBool(const std::string& value)
 {
     int res;
-    Exception::assert( git_config_parse_bool(&res, value.c_str()) );
+    Exception::git2_assert( git_config_parse_bool(&res, value.c_str()) );
     return res != 0;
 }
 
 int32_t Config::parseInt32(const std::string& value)
 {
     int32_t res;
-    Exception::assert( git_config_parse_int32(&res, value.c_str()) );
+    Exception::git2_assert( git_config_parse_int32(&res, value.c_str()) );
     return res;
 }
 
 int64_t Config::parseInt64(const std::string& value)
 {
     int64_t res;
-    Exception::assert( git_config_parse_int64(&res, value.c_str()) );
+    Exception::git2_assert( git_config_parse_int64(&res, value.c_str()) );
     return res;
 }
 
 void Config::refresh()
 {
-    Exception::assert( git_config_refresh(data()) );
+    Exception::git2_assert( git_config_refresh(data()) );
 }
 
 std::string Config::findGlobal()
 {
     char buffer[GIT_PATH_MAX];
-    Exception::assert(git_config_find_global(buffer, GIT_PATH_MAX) );
+    Exception::git2_assert(git_config_find_global(buffer, GIT_PATH_MAX) );
     return std::string(buffer);
 }
 
 std::string Config::findSystem()
 {
     char buffer[GIT_PATH_MAX];
-    Exception::assert( git_config_find_system(buffer, GIT_PATH_MAX) );
+    Exception::git2_assert( git_config_find_system(buffer, GIT_PATH_MAX) );
     return std::string(buffer);
 }
 
 std::string Config::findXdg()
 {
     char buffer[GIT_PATH_MAX];
-    Exception::assert( git_config_find_xdg(buffer, GIT_PATH_MAX) );
+    Exception::git2_assert( git_config_find_xdg(buffer, GIT_PATH_MAX) );
     return std::string(buffer);
 }
 
@@ -151,7 +151,7 @@ std::string Config::get(const std::string &key, const std::string &defaultValue)
 
 void Config::set(const std::string &key, const std::string &value)
 {
-    Exception::assert( git_config_set_string(_conf, key.c_str(), value.c_str()) );
+    Exception::git2_assert( git_config_set_string(_conf, key.c_str(), value.c_str()) );
 }
 
 
@@ -171,7 +171,7 @@ int32_t Config::get(const std::string &key, int32_t defaultValue) const
 
 void Config::set(const std::string &key, int32_t value)
 {
-	Exception::assert( git_config_set_int32(_conf, key.c_str(), value) );	
+	Exception::git2_assert( git_config_set_int32(_conf, key.c_str(), value) );	
 }
 
 bool Config::get(const std::string &key, int64_t* value) const
@@ -189,7 +189,7 @@ int64_t Config::get(const std::string &key, int64_t defaultValue) const
 
 void Config::set(const std::string &key, int64_t value)
 {
-	Exception::assert( git_config_set_int64(_conf, key.c_str(), value) );	
+	Exception::git2_assert( git_config_set_int64(_conf, key.c_str(), value) );	
 }
 
 
@@ -218,13 +218,13 @@ int32_t Config::get(const std::string &key, bool defaultValue) const
 
 void Config::set(const std::string &key, bool value)
 {
-	Exception::assert( git_config_set_bool(_conf, key.c_str(), value?1:0) );
+	Exception::git2_assert( git_config_set_bool(_conf, key.c_str(), value?1:0) );
 }
 
 
 void Config::deleteEntry(const std::string &name)
 {
-	Exception::assert( git_config_delete_entry(_conf, name.c_str()) );	
+	Exception::git2_assert( git_config_delete_entry(_conf, name.c_str()) );	
 }
 
 git_config * Config::data()

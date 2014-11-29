@@ -55,14 +55,14 @@ bool OId::isValid() const
 void OId::fromHex(const std::vector<char>& hex)
 {
 	size_t len = std::min(hex.size(), (size_t)GIT_OID_HEXSZ);
-	 Exception::assert(git_oid_fromstrn(data(), &hex.front(), len));
+	 Exception::git2_assert(git_oid_fromstrn(data(), &hex.front(), len));
 	_oid.resize(len / 2);
 }
 
 void OId::fromString(const std::string& str)
 {
 	size_t len = std::min(str.size(), (size_t)GIT_OID_HEXSZ);
-	 Exception::assert(git_oid_fromstrn(data(), str.c_str(), len));
+	 Exception::git2_assert(git_oid_fromstrn(data(), str.c_str(), len));
 	_oid.resize(len / 2);
 }
 

@@ -68,7 +68,7 @@ OId TreeEntry::oid() const
 Object TreeEntry::toObject(const Repository& repo)
 {
     git_object *obj;
-    Exception::assert(git_tree_entry_to_object(&obj, repo.data(), _entry));
+    Exception::git2_assert(git_tree_entry_to_object(&obj, repo.data(), _entry));
     return Object(obj);
 }
 

@@ -50,7 +50,7 @@ OId Tag::oid() const
 Object Tag::target() const
 {
     git_object *obj;
-	Exception::assert(git_tag_target(&obj, data()));
+	Exception::git2_assert(git_tag_target(&obj, data()));
     return Object(obj);
 }
 
@@ -82,7 +82,7 @@ std::string Tag::message()
 Object Tag::peel()
 {
 	git_object *obj;
-	Exception::assert(git_tag_peel(&obj, data()));
+	Exception::git2_assert(git_tag_peel(&obj, data()));
 	return Object(obj);
 }
 

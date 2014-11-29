@@ -114,7 +114,7 @@ std::string Reference::symbolicTarget()const
 Reference Reference::resolve() const
 {
     git_reference *ref;
-    Exception::assert(git_reference_resolve(&ref, _ref.get()));
+    Exception::git2_assert(git_reference_resolve(&ref, _ref.get()));
     return Reference(ref);
 }
 
@@ -126,45 +126,45 @@ Repository Reference::owner() const
 Reference Reference::setSymbolicTarget(const std::string& target)
 {
 	git_reference *out;
-    Exception::assert(git_reference_symbolic_set_target(&out, _ref.get(), target.c_str()));
+    Exception::git2_assert(git_reference_symbolic_set_target(&out, _ref.get(), target.c_str()));
     return Reference(out);
 }
 
 void Reference::setTarget(const OId& oid)
 {
 	git_reference *ref;
-    Exception::assert(git_reference_set_target(&ref, data(), oid.constData()));
+    Exception::git2_assert(git_reference_set_target(&ref, data(), oid.constData()));
     _ref = ptr_type(ref, GitReferenceDeleter());
 }
 
 void Reference::rename(const std::string name, bool force)
 {
 	git_reference *ref;
-	Exception::assert(git_reference_rename(&ref, data(), name.c_str(), force?1:0));
+	Exception::git2_assert(git_reference_rename(&ref, data(), name.c_str(), force?1:0));
 	_ref = ptr_type(ref, GitReferenceDeleter());
 }
 
 void Reference::deleteReference()
 {
-	Exception::assert(git_reference_delete(data()));
+	Exception::git2_assert(git_reference_delete(data()));
 	_ref.reset();
 }
 
 RefLog* Reference::readRefLog()
 {
 	git_reflog *reflog;
-	Exception::assert(git_reflog_read(&reflog, data()));
+	Exception::git2_assert(git_reflog_read(&reflog, data()));
 	return new RefLog(reflog);
 }
 
 void Reference::renameRefLog(const std::string name)
 {
-	Exception::assert(git_reflog_rename(data(), name.c_str()));
+	Exception::git2_assert(git_reflog_rename(data(), name.c_str()));
 }
 
 void Reference::deleteRefLog()
 {
-	Exception::assert(git_reflog_delete(data()));
+	Exception::git2_assert(git_reflog_delete(data()));
 }
 
 bool Reference::isNull() const
@@ -185,7 +185,7 @@ bool Reference::isValidName(const std::string& name)
 std::string Reference::normalizeName(const std::string& name, unsigned int flags)
 {
 	char buffer[GIT_PATH_MAX];
-	Exception::assert(git_reference_normalize_name(buffer, GIT_PATH_MAX-1, name.c_str(), flags));
+	Exception::git2_assert(git_reference_normalize_name(buffer, GIT_PATH_MAX-1, name.c_str(), flags));
 	return std::string(buffer);
 }
 
@@ -251,17 +251,17 @@ RefLog::~RefLog()
 
 void RefLog::append(const OId& id, const Signature& commiter, const std::string& msg)
 {
-	Exception::assert(git_reflog_append(data(), id.constData(), commiter.constData(), msg.empty()?NULL:msg.c_str()));
+	Exception::git2_assert(git_reflog_append(data(), id.constData(), commiter.constData(), msg.empty()?NULL:msg.c_str()));
 }
 
 void RefLog::drop(size_t idx, bool rewrite)
 {
-	Exception::assert(git_reflog_drop(data(), idx, rewrite?1:0));
+	Exception::git2_assert(git_reflog_drop(data(), idx, rewrite?1:0));
 }
 
 void RefLog::write()
 {
-	Exception::assert(git_reflog_write(data()));
+	Exception::git2_assert(git_reflog_write(data()));
 }
 
 unsigned int RefLog::getEntryCount()

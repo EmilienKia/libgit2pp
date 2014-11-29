@@ -97,7 +97,7 @@ std::string Repository::discover(const std::string& startPath, bool acrossFs, co
 			joinedCeilingDirs += *iter;
 		}
 	}
-	Exception::assert(git_repository_discover(const_cast<char*>(repoPath.data()),
+	Exception::git2_assert(git_repository_discover(const_cast<char*>(repoPath.data()),
 									  repoPath.size(), startPath.c_str(),
                                       acrossFs, joinedCeilingDirs.c_str()));
     return std::string(repoPath.data());
@@ -107,7 +107,7 @@ void Repository::init(const std::string& path, bool isBare)
 {
 	_repo.reset();
     git_repository *repo = NULL;
-    Exception::assert(git_repository_init(&repo, path.c_str(), isBare));
+    Exception::git2_assert(git_repository_init(&repo, path.c_str(), isBare));
     _repo = ptr_type(repo, GitRepositoryDeleter());
 }
 
@@ -115,7 +115,7 @@ void Repository::open(const std::string& path)
 {
 	_repo.reset();
     git_repository *repo = NULL;
-    Exception::assert(git_repository_open(&repo, path.c_str()));
+    Exception::git2_assert(git_repository_open(&repo, path.c_str()));
     _repo = ptr_type(repo, GitRepositoryDeleter());
 }
 
@@ -129,28 +129,28 @@ void Repository::discoverAndOpen(const std::string &startPath,
 Reference Repository::head() const
 {
     git_reference *ref = NULL;
-    Exception::assert(git_repository_head(&ref, _repo.get()));
+    Exception::git2_assert(git_repository_head(&ref, _repo.get()));
     return Reference(ref);
 }
 
 bool Repository::isHeadDetached() const
 {
-    return Exception::assert(git_repository_head_detached(_repo.get())) == 1;
+    return Exception::git2_assert(git_repository_head_detached(_repo.get())) == 1;
 }
 
 bool Repository::isHeadOrphan() const
 {
-    return Exception::assert(git_repository_head_orphan(_repo.get())) == 1;
+    return Exception::git2_assert(git_repository_head_orphan(_repo.get())) == 1;
 }
 
 bool Repository::isEmpty() const
 {
-    return Exception::assert(git_repository_is_empty(_repo.get())) == 1;
+    return Exception::git2_assert(git_repository_is_empty(_repo.get())) == 1;
 }
 
 bool Repository::isBare() const
 {
-    return Exception::assert(git_repository_is_bare(_repo.get())) == 1;
+    return Exception::git2_assert(git_repository_is_bare(_repo.get())) == 1;
 }
 
 std::string Repository::name() const
@@ -177,90 +177,90 @@ std::string Repository::workdir() const
 
 void Repository::setWorkdir(const std::string& path, bool updateGitLink)
 {
-	Exception::assert( git_repository_set_workdir(data(), path.c_str(), updateGitLink ? 1 : 0) );
+	Exception::git2_assert( git_repository_set_workdir(data(), path.c_str(), updateGitLink ? 1 : 0) );
 }
 
 Config Repository::configuration() const
 {
     git_config *cfg;
-    Exception::assert( git_repository_config(&cfg, _repo.get()) );
+    Exception::git2_assert( git_repository_config(&cfg, _repo.get()) );
     return Config(cfg);
 }
 
 Reference Repository::lookupReference(const std::string& name) const
 {
     git_reference *ref = NULL;
-    Exception::assert(git_reference_lookup(&ref, _repo.get(), name.c_str()));
+    Exception::git2_assert(git_reference_lookup(&ref, _repo.get(), name.c_str()));
     return Reference(ref);
 }
 
 OId Repository::lookupReferenceOId(const std::string& name) const
 {
     git_oid oid;
-    Exception::assert(git_reference_name_to_id(&oid, _repo.get(), name.c_str()));
+    Exception::git2_assert(git_reference_name_to_id(&oid, _repo.get(), name.c_str()));
     return OId(&oid);
 }
 
 Reference Repository::lookupShorthandReference(const std::string& shorthand) const
 {
     git_reference *ref = NULL;
-    Exception::assert(git_reference_dwim(&ref, _repo.get(), shorthand.c_str()));
+    Exception::git2_assert(git_reference_dwim(&ref, _repo.get(), shorthand.c_str()));
     return Reference(ref);
 }
 
 Commit Repository::lookupCommit(const OId& oid) const
 {
     git_commit *commit = NULL;
-    Exception::assert(git_commit_lookup_prefix(&commit, _repo.get(), oid.constData(), oid.length()));
+    Exception::git2_assert(git_commit_lookup_prefix(&commit, _repo.get(), oid.constData(), oid.length()));
     return Commit(commit);
 }
 
 Branch Repository::lookupBranch(const std::string& branchName, git_branch_t branchType)
 {
     git_reference *ref = NULL;
-    Exception::assert(git_branch_lookup(&ref, _repo.get(), branchName.c_str(), branchType));
+    Exception::git2_assert(git_branch_lookup(&ref, _repo.get(), branchName.c_str(), branchType));
     return Branch(ref);	
 }
 
 Tag Repository::lookupTag(const OId& oid) const
 {
     git_tag *tag = NULL;
-    Exception::assert(git_tag_lookup_prefix(&tag, _repo.get(), oid.constData(), oid.length()));
+    Exception::git2_assert(git_tag_lookup_prefix(&tag, _repo.get(), oid.constData(), oid.length()));
     return Tag(tag);
 }
 
 Tree Repository::lookupTree(const OId& oid) const
 {
     git_tree *tree = NULL;
-    Exception::assert(git_tree_lookup_prefix(&tree, _repo.get(), oid.constData(), oid.length()));
+    Exception::git2_assert(git_tree_lookup_prefix(&tree, _repo.get(), oid.constData(), oid.length()));
     return Tree(tree);
 }
 
 Blob Repository::lookupBlob(const OId& oid) const
 {
     git_blob *blob = NULL;
-    Exception::assert(git_blob_lookup_prefix(&blob, _repo.get(), oid.constData(), oid.length()));
+    Exception::git2_assert(git_blob_lookup_prefix(&blob, _repo.get(), oid.constData(), oid.length()));
     return Blob(blob);
 }
 
 Object Repository::lookup(const OId &oid) const
 {
     git_object *object = NULL;
-    Exception::assert(git_object_lookup_prefix(&object, _repo.get(), oid.constData(), oid.length(), GIT_OBJ_ANY));
+    Exception::git2_assert(git_object_lookup_prefix(&object, _repo.get(), oid.constData(), oid.length(), GIT_OBJ_ANY));
     return Object(object);
 }
 
 Reference Repository::createReference(const std::string& name, const OId& id, bool force)
 {
     git_reference *ref = NULL;
-    Exception::assert(git_reference_create(&ref, data(), name.c_str(), id.constData(), force?1:0));
+    Exception::git2_assert(git_reference_create(&ref, data(), name.c_str(), id.constData(), force?1:0));
     return Reference(ref);
 }
 
 Reference Repository::createSymbolicReference(const std::string& name, const std::string& target, bool force)
 {
 	git_reference *ref;
-	Exception::assert(git_reference_symbolic_create(&ref, data(), name.c_str(), target.c_str(), force?1:0));
+	Exception::git2_assert(git_reference_symbolic_create(&ref, data(), name.c_str(), target.c_str(), force?1:0));
 	return Reference(ref);
 }
 
@@ -276,7 +276,7 @@ OId Repository::createCommit(const std::string& ref,
 		p.push_back(parent.constData());
 
     OId oid;
-    Exception::assert(git_commit_create(oid.data(), _repo.get(), ref.c_str(), author.constData(), committer.constData(), NULL, message.c_str(), tree.data(), p.size(), p.data()));
+    Exception::git2_assert(git_commit_create(oid.data(), _repo.get(), ref.c_str(), author.constData(), committer.constData(), NULL, message.c_str(), tree.data(), p.size(), p.data()));
     return oid;
 }
 
@@ -293,14 +293,14 @@ OId Repository::createCommit(const std::string& ref,
 		p.push_back(parent.constData());
 
     OId oid;
-    Exception::assert(git_commit_create(oid.data(), _repo.get(), ref.c_str(), author.constData(), committer.constData(), messageEncoding.c_str(), message.c_str(), tree.data(), p.size(), p.data()));
+    Exception::git2_assert(git_commit_create(oid.data(), _repo.get(), ref.c_str(), author.constData(), committer.constData(), messageEncoding.c_str(), message.c_str(), tree.data(), p.size(), p.data()));
     return oid;
 }
 
 Branch Repository::createBranch(const std::string& branchName, const Commit& target, bool force)
 {
 	git_reference *out;
-	Exception::assert(git_branch_create(&out, data(), branchName.c_str(), target.constData(), force?1:0));
+	Exception::git2_assert(git_branch_create(&out, data(), branchName.c_str(), target.constData(), force?1:0));
 	return Branch(out);
 }
 
@@ -309,7 +309,7 @@ OId Repository::createTag(const std::string& name,
                                   bool overwrite)
 {
     OId oid;
-    Exception::assert(git_tag_create_lightweight(oid.data(), _repo.get(), name.c_str(),
+    Exception::git2_assert(git_tag_create_lightweight(oid.data(), _repo.get(), name.c_str(),
                                          target.data(), overwrite));
     return oid;
 }
@@ -321,27 +321,27 @@ OId Repository::createTag(const std::string& name,
                                   bool overwrite)
 {
     OId oid;
-    Exception::assert(git_tag_create(oid.data(), _repo.get(), name.c_str(), target.data(),
+    Exception::git2_assert(git_tag_create(oid.data(), _repo.get(), name.c_str(), target.data(),
                              tagger.constData(), message.c_str(), overwrite));
     return oid;
 }
 
 void Repository::deleteTag(const std::string& name)
 {
-    Exception::assert(git_tag_delete(_repo.get(), name.c_str()));
+    Exception::git2_assert(git_tag_delete(_repo.get(), name.c_str()));
 }
 
 OId Repository::createBlobFromDisk(const std::string& path)
 {
     OId oid;
-    Exception::assert(git_blob_create_fromdisk(oid.data(), _repo.get(), path.c_str()));
+    Exception::git2_assert(git_blob_create_fromdisk(oid.data(), _repo.get(), path.c_str()));
     return oid;
 }
 
 OId Repository::createBlobFromDisk(const char* path)
 {
     OId oid;
-    Exception::assert(git_blob_create_fromdisk(oid.data(), _repo.get(), path));
+    Exception::git2_assert(git_blob_create_fromdisk(oid.data(), _repo.get(), path));
     return oid;
 }
 
@@ -349,28 +349,28 @@ OId Repository::createBlobFromDisk(const char* path)
 OId Repository::createBlobFromBuffer(const std::vector<unsigned char>& buffer)
 {
     OId oid;
-    Exception::assert(git_blob_create_frombuffer(oid.data(), _repo.get(), buffer.data(), buffer.size()));
+    Exception::git2_assert(git_blob_create_frombuffer(oid.data(), _repo.get(), buffer.data(), buffer.size()));
     return oid;
 }
 
 OId Repository::createBlobFromBuffer(const void* buffer, size_t len)
 {
     OId oid;
-    Exception::assert(git_blob_create_frombuffer(oid.data(), _repo.get(), buffer, len));
+    Exception::git2_assert(git_blob_create_frombuffer(oid.data(), _repo.get(), buffer, len));
     return oid;
 }
 
 OId Repository::createBlobFromWorkdir(const std::string& relativePath)
 {
     OId oid;
-    Exception::assert(git_blob_create_fromworkdir(oid.data(), _repo.get(), relativePath.c_str()));
+    Exception::git2_assert(git_blob_create_fromworkdir(oid.data(), _repo.get(), relativePath.c_str()));
     return oid;
 }
 
 OId Repository::createBlobFromWorkdir(const char* relativePath)
 {
     OId oid;
-    Exception::assert(git_blob_create_fromworkdir(oid.data(), _repo.get(), relativePath));
+    Exception::git2_assert(git_blob_create_fromworkdir(oid.data(), _repo.get(), relativePath));
     return oid;
 }
 
@@ -379,9 +379,9 @@ std::list<std::string> Repository::listTags(const std::string& pattern) const
     std::list<std::string> list;
     git_strarray tags;
 	if(pattern.empty())
-		Exception::assert(git_tag_list(&tags, _repo.get()));
+		Exception::git2_assert(git_tag_list(&tags, _repo.get()));
 	else
-	    Exception::assert(git_tag_list_match(&tags, pattern.c_str(), _repo.get()));
+	    Exception::git2_assert(git_tag_list_match(&tags, pattern.c_str(), _repo.get()));
     for(size_t i = 0; i < tags.count; ++i)
     {
         list.push_back(std::string(tags.strings[i]));
@@ -394,7 +394,7 @@ std::list<std::string> Repository::listReferences() const
 {
     std::list<std::string> list;
     git_strarray refs;
-    Exception::assert(git_reference_list(&refs, _repo.get()));
+    Exception::git2_assert(git_reference_list(&refs, _repo.get()));
     for(size_t i = 0; i < refs.count; ++i)
     {
         list.push_back(std::string(refs.strings[i]));
@@ -406,7 +406,7 @@ std::list<std::string> Repository::listReferences() const
 Database Repository::database() const
 {
     git_odb *odb;
-    Exception::assert( git_repository_odb(&odb, _repo.get()) );
+    Exception::git2_assert( git_repository_odb(&odb, _repo.get()) );
     return Database(odb);
 }
 
@@ -414,7 +414,7 @@ Database Repository::database() const
 Index Repository::index() const
 {
     git_index *idx;
-    Exception::assert(git_repository_index(&idx, _repo.get()));
+    Exception::git2_assert(git_repository_index(&idx, _repo.get()));
     return Index(idx);
 }
 
@@ -426,7 +426,7 @@ void Repository::setIndex(Index& index)
 OId Repository::writeIndexTree(Index& index)
 {
 	git_oid oid;
-	Exception::assert(git_index_write_tree_to(&oid, index.data(), data()));
+	Exception::git2_assert(git_index_write_tree_to(&oid, index.data(), data()));
 	return OId(oid);
 }
 
@@ -437,7 +437,7 @@ OId Repository::writeIndexTree(Index& index)
 {
     const git_status_options opt = options->constData();
     git_status_list *statusList;
-    Exception::assert(git_status_list_new(&statusList, _repo.get(), &opt));
+    Exception::git2_assert(git_status_list_new(&statusList, _repo.get(), &opt));
     return StatusList(statusList);
 }*/
 
@@ -445,21 +445,21 @@ OId Repository::writeIndexTree(Index& index)
 Remote* Repository::createRemote(const std::string& name, const std::string& url)
 {
 	git_remote *remote;
-	Exception::assert(git_remote_create(&remote, data(), name.c_str(), url.c_str()));
+	Exception::git2_assert(git_remote_create(&remote, data(), name.c_str(), url.c_str()));
 	return new Remote(remote);
 }
 
 Remote* Repository::createMemoryRemote(const std::string& fetch, const std::string& url)
 {
 	git_remote *remote;
-	Exception::assert(git_remote_create_inmemory(&remote, data(), fetch.c_str(), url.c_str()));
+	Exception::git2_assert(git_remote_create_inmemory(&remote, data(), fetch.c_str(), url.c_str()));
 	return new Remote(remote);
 }
 
 Remote* Repository::getRemote(const std::string& name)
 {
 	git_remote *remote;
-	Exception::assert(git_remote_load(&remote, data(), name.c_str()));
+	Exception::git2_assert(git_remote_load(&remote, data(), name.c_str()));
 	return new Remote(remote);
 }
 
@@ -467,7 +467,7 @@ std::vector<std::string> Repository::listRemote()
 {
     std::vector<std::string> list;
     git_strarray repos;
-    Exception::assert(git_remote_list(&repos, data()));
+    Exception::git2_assert(git_remote_list(&repos, data()));
     for(size_t i = 0; i < repos.count; ++i)
     {
         list.push_back(std::string(repos.strings[i]));
@@ -486,7 +486,7 @@ std::string Repository::getBranchUpstreamName(const std::string& canonicalBranch
 		return std::string(buffer, res-1);
 	else
 	{
-		Exception::assert(res);
+		Exception::git2_assert(res);
 		return "";
 	}
 }
@@ -501,7 +501,7 @@ std::string Repository::getBranchRemoteName(const std::string& canonicalBranchNa
 		return std::string(buffer, res-1);
 	else
 	{
-		Exception::assert(res);
+		Exception::git2_assert(res);
 		return "";
 	}
 }
