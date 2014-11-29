@@ -31,13 +31,15 @@ namespace git2
 	class Exception: public std::exception 
 	{
 	public:
-		Exception();
+		Exception(int err = GIT_OK);
 		~Exception() throw();
 		const char *what() const throw();
 		std::string message() const throw();
+		int err() const throw();
 
 		static int git2_assert(int ret);
 	private:
+		int _err;
 		std::string _msg;
 	};
 

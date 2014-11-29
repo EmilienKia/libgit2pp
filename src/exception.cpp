@@ -22,11 +22,12 @@
 namespace git2
 {
 
-Exception::Exception()
+Exception::Exception(int err):
+_err(err)
 {
-	const git_error *err = giterr_last();
-	if (err != NULL) {
-		_msg = err->message;
+	const git_error *error = giterr_last();
+	if (error != NULL) {
+		_msg = error->message;
 		giterr_clear();
 	}
 }
@@ -45,11 +46,16 @@ std::string Exception::message() const throw()
 	return _msg;
 }
 
+int Exception::err() const throw()
+{
+	return _err;
+}
+
 int Exception::git2_assert(int ret)
 {
 	if(ret<0)
 	{
-		throw Exception();
+		throw Exception(ret);
 	}
 	return ret;
 }
