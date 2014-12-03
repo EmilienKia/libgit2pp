@@ -25,6 +25,7 @@
 #include <list>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace git2
@@ -643,6 +644,19 @@ public:
 	 * Create a revision walker for this repository.
 	 */
 	RevWalk createRevWalk();
+	
+	/**
+	 * Count the number of unique commits between two commit objects
+	 *
+	 * There is no need for branches containing the commits to have any
+	 * upstream relationship, but it helps to think of one as a branch and
+	 * the other as its upstream, the `ahead` and `behind` values will be
+	 * what git would report for the branches.
+	 * 
+	 * @param local the commit for local
+	 * @param upstream the commit for upstream
+	 */
+	std::pair<size_t, size_t> aheadBehind(const OId& local, const OId& upstream)const;
 	
     git_repository* data() const;
     const git_repository* constData() const;

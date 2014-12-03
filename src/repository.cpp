@@ -514,6 +514,13 @@ RevWalk Repository::createRevWalk()
 	return RevWalk(out);
 }
 
+std::pair<size_t, size_t> Repository::aheadBehind(const OId& local, const OId& upstream)const
+{
+	std::pair<size_t, size_t> res;
+	Exception::git2_assert(git_graph_ahead_behind(&res.first, &res.second, data(), local.constData(), upstream.constData()));
+	return res;
+}
+
 git_repository* Repository::data() const
 {
     return _repo.get();
