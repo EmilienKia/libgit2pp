@@ -521,6 +521,24 @@ std::pair<size_t, size_t> Repository::aheadBehind(const OId& local, const OId& u
 	return res;
 }
 
+void Repository::addIgnoreRule(const std::string& rules)
+{
+	Exception::git2_assert(git_ignore_add_rule(data(), rules.c_str()));
+}
+
+void Repository::clearIgnoreInternalRules()
+{
+	Exception::git2_assert(git_ignore_clear_internal_rules(data()));
+}
+
+bool Repository::isIgnored(const std::string& path)
+{
+	int res;
+	Exception::git2_assert(git_ignore_path_is_ignored(&res, data(), path.c_str()));
+	return res!=0;
+}
+
+
 git_repository* Repository::data() const
 {
     return _repo.get();
