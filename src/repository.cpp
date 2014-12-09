@@ -112,6 +112,33 @@ void Repository::init(const std::string& path, bool isBare)
     _repo = ptr_type(repo, GitRepositoryDeleter());
 }
 
+void Repository::init(const std::string& path,
+	uint32_t    flags,
+	uint32_t    mode,
+	const std::string& workdirPath,
+	const std::string& description,
+	const std::string& templatePath,
+	const std::string& initialHead,
+	const std::string& originUrl)
+{
+	_repo.reset();
+    git_repository *repo = NULL;
+    
+    git_repository_init_options opts;
+    opts.version = GIT_REPOSITORY_INIT_OPTIONS_VERSION;
+    opts.flags   = flags;
+    opts.mode    = mode;
+    opts.workdir_path  = workdirPath.empty() ? NULL : workdirPath.c_str();
+    opts.description   = description.empty() ? NULL : description.c_str();
+    opts.template_path = templatePath.empty() ? NULL : templatePath.c_str();
+    opts.initial_head  = initialHead.empty() ? NULL : initialHead.c_str();
+    opts.origin_url    = originUrl.empty() ? NULL : originUrl.c_str();
+    
+    Exception::git2_assert(git_repository_init_ext(&repo, path.c_str(), &opts));
+    _repo = ptr_type(repo, GitRepositoryDeleter());	
+}
+
+
 void Repository::open(const std::string& path)
 {
 	_repo.reset();
@@ -125,6 +152,14 @@ void Repository::discoverAndOpen(const std::string &startPath,
                                      const std::list<std::string> &ceilingDirs)
 {
     open(discover(startPath, acrossFs, ceilingDirs));
+}
+
+void Repository::openBare(const std::string& path)
+{
+	_repo.reset();
+    git_repository *repo = NULL;
+    Exception::git2_assert(git_repository_open_bare(&repo, path.c_str()));
+    _repo = ptr_type(repo, GitRepositoryDeleter());
 }
 
 Reference Repository::head() const
@@ -411,7 +446,6 @@ Database Repository::database() const
     return Database(odb);
 }
 
-#ifdef TODO // Index rework
 Index Repository::index() const
 {
     git_index *idx;
@@ -419,6 +453,7 @@ Index Repository::index() const
     return Index(idx);
 }
 
+/*
 void Repository::setIndex(Index& index)
 {
 	git_repository_set_index(data(), index.data());
@@ -430,8 +465,20 @@ OId Repository::writeIndexTree(Index& index)
 	Exception::git2_assert(git_index_write_tree_to(&oid, index.data(), data()));
 	return OId(oid);
 }
+*/
 
-#endif // 0 Index rework
+
+std::string Repository::message()const
+{
+	char buffer[4096];
+	Exception::git2_assert(git_repository_message(buffer, 4096, data()));
+	return std::string(buffer);
+}
+
+void Repository::removeMessage()
+{
+	Exception::git2_assert(git_repository_message_remove(data()));
+}
 
 // TODO only available from v0.19.0
 /*StatusList Repository::status(const StatusOptions *options) const
@@ -538,6 +585,56 @@ bool Repository::isIgnored(const std::string& path)
 	return res!=0;
 }
 
+void Repository::cleanupMerge()
+{
+	Exception::git2_assert(git_repository_merge_cleanup(data()));
+}
+
+OId Repository::hashFile(const std::string& path, git_otype type, const std::string& asPath)
+{
+	git_oid out;
+	Exception::git2_assert(git_repository_hashfile(&out, data(),
+		path.empty()?NULL:path.c_str(), type, asPath.empty()?NULL:asPath.c_str()));
+		
+	return OId(&out);
+}
+
+void Repository::setHead(const std::string& refname)
+{
+	Exception::git2_assert(git_repository_set_head(data(), refname.c_str()));
+}
+
+/* TODO Need reworked OId
+void Repository::setDetachedHead(const OId& commitish)
+{
+	Exception::git2_assert(git_repository_set_head_detached(data(), commitish.constData()));
+}
+*/
+
+void Repository::detachHead()
+{
+	Exception::git2_assert(git_repository_detach_head(data()));
+}
+
+int Repository::state()const
+{
+	return git_repository_state(data());
+}
+
+void Repository::setNamespace(const std::string& nmspace)
+{
+	Exception::git2_assert(git_repository_set_namespace(data(), nmspace.c_str()));
+}
+
+std::string Repository::getNamespace()
+{
+	return git_repository_get_namespace(data());
+}
+
+bool Repository::shallow()const
+{
+	return git_repository_is_shallow(data())!=0;
+}
 
 git_repository* Repository::data() const
 {

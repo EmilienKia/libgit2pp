@@ -120,6 +120,47 @@ public:
      */
     void init(const std::string& path, bool isBare);
 
+	/**
+	 * Create a new Git repository in the given folder with extended controls.
+	 *
+	 * This will initialize a new git repository (creating the path
+	 * if requested by flags) and working directory as needed.  It will
+	 * auto-detect the case sensitivity of the file system and if the
+	 * file system supports file mode bits correctly.
+	 * 
+	 * @param path The path to the repository.
+	 * @param flags - Combination of GIT_REPOSITORY_INIT flags above.
+	 * @param mode  - Set to one of the standard GIT_REPOSITORY_INIT_SHARED_...
+	 *        constants above, or to a custom value that you would like.
+	 * @param workdirPath - The path to the working dir or empty for default (i.e.
+	 *        repo_path parent on non-bare repos).  IF THIS IS RELATIVE PATH,
+	 *        IT WILL BE EVALUATED RELATIVE TO THE REPO_PATH.  If this is not
+	 *        the "natural" working directory, a .git gitlink file will be
+	 *        created here linking to the repo_path.
+	 * @param description - If set, this will be used to initialize the "description"
+	 *        file in the repository, instead of using the template content.
+	 * @param templatePath - When GIT_REPOSITORY_INIT_EXTERNAL_TEMPLATE is set,
+	 *        this contains the path to use for the template directory.  If
+	 *        this is NULL, the config or default directory options will be
+	 *        used instead.
+	 * @param initialHead - The name of the head to point HEAD at.  If empty, then
+	 *        this will be treated as "master" and the HEAD ref will be set
+	 *        to "refs/heads/master".  If this begins with "refs/" it will be
+	 *        used verbatim; otherwise "refs/heads/" will be prefixed.
+	 * @param originUrl - If this is non-empty, then after the rest of the
+	 *        repository initialization is completed, an "origin" remote
+	 *        will be added pointing to this URL.
+	 */
+	void init(const std::string& path,
+		uint32_t    flags,
+		uint32_t    mode,
+		const std::string& workdirPath,
+		const std::string& description,
+		const std::string& templatePath,
+		const std::string& initialHead,
+		const std::string& originUrl);
+
+
     /**
      * Open a git repository.
      *
@@ -144,6 +185,8 @@ public:
      */
     void open(const std::string& path);
 
+	// TODO Implement git_repository_wrap_odb
+
     /**
      * Convenience function for finding and opening a git repository.
      *
@@ -154,6 +197,19 @@ public:
     void discoverAndOpen(const std::string &startPath,
                          bool acrossFs = false,
                          const std::list<std::string> &ceilingDirs = std::list<std::string>());
+
+	// TODO Implement git_repository_open_ext
+	
+	/**
+	 * Open a bare repository on the serverside.
+	 *
+	 * This is a fast open for bare repositories that will come in handy
+	 * if you're e.g. hosting git repositories and need to access them
+	 * efficiently
+	 * 
+	 * @param path Direct path to the bare repository
+	 */
+	void openBare(const std::string& path);
 
     /**
      * Retrieve and resolve the reference pointed at by HEAD.
@@ -531,6 +587,8 @@ public:
      * @throws Exception
      */
     Database database() const;
+    
+    // TODO Implement git_repository_refdb
 
     /**
 	 * Get the Index file for this repository.
@@ -556,7 +614,7 @@ public:
 	 *
 	 * @param index An index object
 	 */
-	void setIndex(Index& index);
+//	void setIndex(Index& index);
 	
 	/**
 	 * Write the index as a tree to the given repository
@@ -566,7 +624,33 @@ public:
 	 * @param index Index to write
 	 * @return OID of the the written tree
 	 */
-	OId writeIndexTree(Index& index);
+//	OId writeIndexTree(Index& index);
+
+/** 
+ * @name Message
+ * @{
+ */
+
+	/** 
+	 * Retrieve git's prepared message
+	 *
+	 * Operations such as git revert/cherry-pick/merge with the -n option
+	 * stop just short of creating a commit with the changes and save
+	 * their prepared message in .git/MERGE_MSG so the next git-commit
+	 * execution can present it to the user for them to amend if they
+	 * wish.
+	 *
+	 * Use this function to get the contents of this file. Don't forget to
+	 * remove the file after you create the commit.
+	 */
+	std::string message()const;
+	
+	/**
+	 * Remove git's prepared message.
+	 */
+	void removeMessage();
+
+/** @} */
 	
     /**
      * @brief Get the status information of the Git repository
@@ -580,6 +664,10 @@ public:
 // TODO only available from v0.19.0
 //    StatusList status(const StatusOptions *options) const;
 
+/**
+ * @name Remotes
+ * @{
+ */
 
 	/**
 	 * Create a remote in memory
@@ -638,7 +726,8 @@ public:
 	 * @return Remote tracking remote name. Empty if not found.
 	 */
 	 std::string getBranchRemoteName(const std::string& canonicalBranchName);
-	
+	 
+/** @} */
 	
 	/**
 	 * Create a revision walker for this repository.
@@ -712,7 +801,112 @@ public:
 
 /** @} */
 
+	/**
+	 * Remove all the metadata associated with an ongoing git merge, including
+	 * MERGE_HEAD, MERGE_MSG, etc.
+	 */
+	void cleanupMerge();
 
+	// TODO implement git_repository_fetchhead_foreach
+	// TODO implement git_repository_mergehead_foreach
+	
+	/**
+	 * Calculate hash of file using repository filtering rules.
+	 *
+	 * If you simply want to calculate the hash of a file on disk with no filters,
+	 * you can just use the `Database::hash()` API.  However, if you want to
+	 * hash a file in the repository and you want to apply filtering rules (e.g.
+	 * crlf filters) before generating the SHA, then use this function.
+	 * 
+	 * @param path Path to file on disk whose contents should be hashed.
+	 * 			Can be a relative path.
+	 * @param type The object type to hash as (e.g. GIT_OBJ_BLOB)
+	 * @param asPath The path to use to look up filtering rules. If this is
+	 *             empty, then the `path` parameter will be used instead. If
+	 *             this is passed as the empty string, then no filters will be
+	 *             applied when calculating the hash.
+	 */
+	OId hashFile(const std::string& path, git_otype type, const std::string& asPath);
+
+	/**
+	 * Make the repository HEAD point to the specified reference.
+	 *
+	 * If the provided reference points to a Tree or a Blob, the HEAD is
+	 * unaltered and an exception is raised.
+	 *
+	 * If the provided reference points to a branch, the HEAD will point
+	 * to that branch, staying attached, or become attached if it isn't yet.
+	 * If the branch doesn't exist yet, no error will be return. The HEAD
+	 * will then be attached to an unborn branch.
+	 *
+	 * Otherwise, the HEAD will be detached and will directly point to
+	 * the Commit.
+	 * 
+	 * @param refname Canonical name of the reference the HEAD should point at
+	 */
+	void setHead(const std::string& refname);
+	
+	/**
+	 * Make the repository HEAD directly point to the Commit.
+	 *
+	 * If the provided committish cannot be found in the repository, the HEAD
+	 * is unaltered and an exception is raised.
+	 *
+	 * If the provided commitish cannot be peeled into a commit, the HEAD
+	 * is unaltered and an exception is raised.
+	 *
+	 * Otherwise, the HEAD will eventually be detached and will directly point to
+	 * the peeled Commit.
+	 * 
+	 * @param commitish Object id of the Commit the HEAD should point to
+	 */
+	// TODO TODO Need reworked OId
+	//void setDetachedHead(const OId& commitish);
+
+	/**
+	 * Detach the HEAD.
+	 *
+	 * If the HEAD is already detached and points to a non commitish, the HEAD is 
+	 * unaltered, and an exception is raised.
+	 */
+	void detachHead();
+	
+	/**
+	 * Determines the status of a git repository - ie, whether an operation
+	 * (merge, cherry-pick, etc) is in progress.
+	 * 
+	 * @see git_repository_state_t
+	 */
+	int state()const;
+	
+/**
+ * @name Namespaces
+ * @{
+ */
+
+	/**
+	 * Sets the active namespace for this Git Repository
+	 *
+	 * This namespace affects all reference operations for the repo.
+	 * See `man gitnamespaces`
+	 * 
+	 * @param nmspace The namespace. This should not include the refs
+	 *	folder, e.g. to namespace all references under `refs/namespaces/foo/`,
+	 *	use `foo` as the namespace.
+	 */
+	void setNamespace(const std::string& nmspace);
+	
+	/**
+	 * Get the currently active namespace for this repository
+	 */
+	std::string getNamespace();
+
+/** @} */
+
+	/**
+	 * Determine if the repository was a shallow clone
+	 */
+	bool shallow()const;
 	
     git_repository* data() const;
     const git_repository* constData() const;
