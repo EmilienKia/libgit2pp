@@ -908,6 +908,53 @@ public:
 	 */
 	bool shallow()const;
 	
+/**
+ * @name Reset
+ * @{
+ */
+ 
+	/**
+	 * Sets the current head to the specified commit oid and optionally
+	 * resets the index and working tree to match.
+	 *
+	 * SOFT reset means the Head will be moved to the commit.
+	 *
+	 * MIXED reset will trigger a SOFT reset, plus the index will be replaced
+	 * with the content of the commit tree.
+	 *
+	 * HARD reset will trigger a MIXED reset and the working directory will be
+	 * replaced with the content of the index.  (Untracked and ignored files
+	 * will be left alone, however.)
+	 *
+	 * TODO: Implement remaining kinds of resets.
+	 *
+	 * @param target Committish to which the Head should be moved to. This object
+	 * must belong to the given `repo` and can either be a commit or a
+	 * tag. When a git_tag is being passed, it should be dereferencable
+	 * to a commit which oid will be used as the target of the branch.
+	 *
+	 * @param resetType Kind of reset operation to perform.
+	 */
+	void reset(Object& target, git_reset_t resetType);
+	
+	/**
+	 * Updates some entries in the index from the target commit tree.
+	 *
+	 * The scope of the updated entries is determined by the paths
+	 * being passed in the `pathspecs` parameters.
+	 *
+	 * Passing a NULL `target` will result in removing
+	 * entries in the index matching the provided pathspecs.
+	 *
+	 * @param target The committish which content will be used to reset the content
+	 * of the index.
+	 *
+	 * @param pathspecs List of pathspecs to operate on.
+	 */ 
+	void resetDefault(Object* target, const std::vector<std::string> pathspecs);
+	
+/** @} */
+	
     git_repository* data() const;
     const git_repository* constData() const;
 

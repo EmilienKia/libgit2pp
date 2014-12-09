@@ -631,6 +631,29 @@ std::string Repository::getNamespace()
 	return git_repository_get_namespace(data());
 }
 
+void Repository::reset(Object& target, git_reset_t resetType)
+{
+	Exception::git2_assert(git_reset(data(), target.data(), resetType));
+}
+
+void Repository::resetDefault(Object* target, const std::vector<std::string> pathspecs)
+{
+	git_strarray arr;
+	arr.strings = new char*[pathspecs.size()];
+	arr.count = pathspecs.size();
+	for(size_t i=0; i<pathspecs.size(); ++i) {
+		arr.strings[i] = const_cast<char*>(pathspecs[i].data());
+	}
+	
+	try {
+		Exception::git2_assert(git_reset_default(data(), target!=NULL?target->data():NULL, &arr));
+		delete arr.strings;
+	} catch( Exception ex ) {
+		delete arr.strings;
+		throw ex;
+	}
+}
+
 bool Repository::shallow()const
 {
 	return git_repository_is_shallow(data())!=0;
