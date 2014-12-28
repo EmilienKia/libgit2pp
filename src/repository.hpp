@@ -574,7 +574,18 @@ public:
      */
     std::list<std::string> listReferences() const;
 
-	// TODO implement git_reference_foreach and git_reference_foreach_name
+	/**
+	 * Perform a callback on each reference in the repository.
+	 * 
+	 * The `callback` function will be called for each reference in the
+	 * repository, receiving the name of the reference.
+	 * Returning a false value from the callback
+	 * will terminate the iteration.
+	 * 
+	 * @return True if iteration terminated by user, false if iteration terminate completely.
+	 */
+	bool foreachReference(std::function<bool(Reference)> callback);
+	bool foreachReferenceName(std::function<bool(const std::string&)> callback);
 	
     /**
 	 * Get the Object Database for this repository.

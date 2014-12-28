@@ -439,6 +439,35 @@ std::list<std::string> Repository::listReferences() const
     return list;
 }
 
+bool Repository::foreachReference(std::function<bool(Reference)> callback)
+{
+	int res = git_reference_foreach(data(), [&](git_reference* ref, void* payload)->int{
+			std::function<bool(Reference)>& callback = *(std::function<bool(Reference)>*)payload;
+			return callback(Reference(ref)) ? 1 : 0;
+		}, (void*)&callback);
+	if (res==GIT_OK)
+		return false;
+	else if (res==GIT_EUSER)
+		return true;
+	else
+		Exception::git2_assert(res);
+}
+
+bool Repository::foreachReferenceName(std::function<bool(const std::string&)> callback)
+{
+	int res = git_reference_foreach_name(data(), [&](const char* name, void* payload)->int{
+			std::function<bool(const std::string&)>& callback = *(std::function<bool(const std::string&)>*)payload;
+			return callback(std::string(name)) ? 1 : 0;
+		}, (void*)&callback);
+	if (res==GIT_OK)
+		return false;
+	else if (res==GIT_EUSER)
+		return true;
+	else
+		Exception::git2_assert(res);
+}
+
+
 Database Repository::database() const
 {
     git_odb *odb;
