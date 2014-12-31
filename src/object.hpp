@@ -214,6 +214,11 @@ public:
      */
     Repository owner() const;
 
+	/**
+	 * Test if the object is used (internal object not null).
+	 */
+	bool ok()const;
+
     git_object* data() const;
     const git_object* constData() const;
 

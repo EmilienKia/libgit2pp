@@ -168,6 +168,11 @@ Repository Object::owner() const
     return Repository(git_object_owner(_obj.get()));
 }
 
+bool Object::ok()const
+{
+    return _obj.get()!=nullptr;
+}
+
 git_object* Object::data() const
 {
     return _obj.get();

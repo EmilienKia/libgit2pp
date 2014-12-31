@@ -688,6 +688,219 @@ bool Repository::shallow()const
 	return git_repository_is_shallow(data())!=0;
 }
 
+DiffList Repository::diffTreeToTree(Tree oldTree, Tree newTree)
+{
+	git_diff_list *diff;
+	Exception::git2_assert(git_diff_tree_to_tree(&diff, data(), oldTree.data(), newTree.data(), NULL));
+	return DiffList(diff);
+}
+
+DiffList Repository::diffTreeToTree(Tree oldTree, Tree newTree, uint32_t flags, uint16_t contextLines, uint16_t interhunkLines,
+		const std::string& oldPrefix , const std::string& newPrefix, const std::vector<std::string>& pathspec, git_off_t maxSize,
+		DiffNotifyCallbackFunction notify)
+{
+	git_diff_options options = {
+		GIT_DIFF_OPTIONS_VERSION,
+		flags,
+		contextLines,
+		interhunkLines,
+		oldPrefix.c_str(),
+		newPrefix.c_str(),
+		{
+			pathspec.size()>0 ? new char*[pathspec.size()] : NULL,
+			pathspec.size()
+		},
+		maxSize,
+		[](const git_diff_list *diff_so_far, const git_diff_delta *delta_to_add, const char *matched_pathspec, void *payload)->int
+		{
+			DiffNotifyCallbackFunction* callback = (DiffNotifyCallbackFunction*)payload;
+			if(callback!=nullptr)
+				return (*callback)(DiffList(const_cast<git_diff_list*>(diff_so_far)), DiffDelta(const_cast<git_diff_delta*>(delta_to_add)), std::string(matched_pathspec));
+			else
+				return 0;
+		},
+		(void*)&notify
+	};
+	if(pathspec.size()>0)
+	{
+		for(size_t n=0; n<pathspec.size(); ++n)
+		{
+			options.pathspec.strings[n] = const_cast<char*>(pathspec[n].data());
+		}
+	}
+	
+	git_diff_list *diff;
+	int res = git_diff_tree_to_tree(&diff, data(), oldTree.data(), newTree.data(), &options);
+	
+	if(pathspec.size()>0)
+	{
+		delete options.pathspec.strings;
+	}
+	
+	Exception::git2_assert(res);
+	return DiffList(diff);
+}
+
+DiffList Repository::diffTreeToIndex(Tree oldTree, Index index)
+{
+	git_diff_list *diff;
+	Exception::git2_assert(git_diff_tree_to_index(&diff, data(), oldTree.data(), index.data(), NULL));
+	return DiffList(diff);
+}
+
+DiffList Repository::diffTreeToIndex(Tree oldTree, Index index, uint32_t flags, uint16_t contextLines, uint16_t interhunkLines,
+		const std::string& oldPrefix , const std::string& newPrefix, const std::vector<std::string>& pathspec, git_off_t maxSize,
+		DiffNotifyCallbackFunction notify)
+{
+	git_diff_options options = {
+		GIT_DIFF_OPTIONS_VERSION,
+		flags,
+		contextLines,
+		interhunkLines,
+		oldPrefix.c_str(),
+		newPrefix.c_str(),
+		{
+			pathspec.size()>0 ? new char*[pathspec.size()] : NULL,
+			pathspec.size()
+		},
+		maxSize,
+		[](const git_diff_list *diff_so_far, const git_diff_delta *delta_to_add, const char *matched_pathspec, void *payload)->int
+		{
+			DiffNotifyCallbackFunction* callback = (DiffNotifyCallbackFunction*)payload;
+			if(callback!=nullptr)
+				return (*callback)(DiffList(const_cast<git_diff_list*>(diff_so_far)), DiffDelta(const_cast<git_diff_delta*>(delta_to_add)), std::string(matched_pathspec));
+			else
+				return 0;
+		},
+		(void*)&notify
+	};
+	if(pathspec.size()>0)
+	{
+		for(size_t n=0; n<pathspec.size(); ++n)
+		{
+			options.pathspec.strings[n] = const_cast<char*>(pathspec[n].data());
+		}
+	}
+	
+	git_diff_list *diff;
+	int res = git_diff_tree_to_index(&diff, data(), oldTree.data(), index.data(), &options);
+	
+	if(pathspec.size()>0)
+	{
+		delete options.pathspec.strings;
+	}
+	
+	Exception::git2_assert(res);
+	return DiffList(diff);
+}
+
+DiffList Repository::diffIndexToWorkdir(Index index)
+{
+	git_diff_list *diff;
+	Exception::git2_assert(git_diff_index_to_workdir(&diff, data(), index.data(), NULL));
+	return DiffList(diff);
+}
+
+
+DiffList Repository::diffIndexToWorkdir(Index index, uint32_t flags, uint16_t contextLines, uint16_t interhunkLines,
+		const std::string& oldPrefix , const std::string& newPrefix, const std::vector<std::string>& pathspec, git_off_t maxSize,
+		DiffNotifyCallbackFunction notify)
+{
+	git_diff_options options = {
+		GIT_DIFF_OPTIONS_VERSION,
+		flags,
+		contextLines,
+		interhunkLines,
+		oldPrefix.c_str(),
+		newPrefix.c_str(),
+		{
+			pathspec.size()>0 ? new char*[pathspec.size()] : NULL,
+			pathspec.size()
+		},
+		maxSize,
+		[](const git_diff_list *diff_so_far, const git_diff_delta *delta_to_add, const char *matched_pathspec, void *payload)->int
+		{
+			DiffNotifyCallbackFunction* callback = (DiffNotifyCallbackFunction*)payload;
+			if(callback!=nullptr)
+				return (*callback)(DiffList(const_cast<git_diff_list*>(diff_so_far)), DiffDelta(const_cast<git_diff_delta*>(delta_to_add)), std::string(matched_pathspec));
+			else
+				return 0;
+		},
+		(void*)&notify
+	};
+	if(pathspec.size()>0)
+	{
+		for(size_t n=0; n<pathspec.size(); ++n)
+		{
+			options.pathspec.strings[n] = const_cast<char*>(pathspec[n].data());
+		}
+	}
+	
+	git_diff_list *diff;
+	int res = git_diff_index_to_workdir(&diff, data(), index.data(), &options);
+	
+	if(pathspec.size()>0)
+	{
+		delete options.pathspec.strings;
+	}
+	
+	Exception::git2_assert(res);
+	return DiffList(diff);
+}
+
+DiffList Repository::diffTreeToWorkdir(Tree oldTree)
+{
+	git_diff_list *diff;
+	Exception::git2_assert(git_diff_tree_to_workdir(&diff, data(), oldTree.data(), NULL));
+	return DiffList(diff);
+}
+
+DiffList Repository::diffTreeToWorkdir(Tree oldTree, uint32_t flags, uint16_t contextLines, uint16_t interhunkLines,
+		const std::string& oldPrefix , const std::string& newPrefix, const std::vector<std::string>& pathspec, git_off_t maxSize,
+		DiffNotifyCallbackFunction notify)
+{
+	git_diff_options options = {
+		GIT_DIFF_OPTIONS_VERSION,
+		flags,
+		contextLines,
+		interhunkLines,
+		oldPrefix.c_str(),
+		newPrefix.c_str(),
+		{
+			pathspec.size()>0 ? new char*[pathspec.size()] : NULL,
+			pathspec.size()
+		},
+		maxSize,
+		[](const git_diff_list *diff_so_far, const git_diff_delta *delta_to_add, const char *matched_pathspec, void *payload)->int
+		{
+			DiffNotifyCallbackFunction* callback = (DiffNotifyCallbackFunction*)payload;
+			if(callback!=nullptr)
+				return (*callback)(DiffList(const_cast<git_diff_list*>(diff_so_far)), DiffDelta(const_cast<git_diff_delta*>(delta_to_add)), std::string(matched_pathspec));
+			else
+				return 0;
+		},
+		(void*)&notify
+	};
+	if(pathspec.size()>0)
+	{
+		for(size_t n=0; n<pathspec.size(); ++n)
+		{
+			options.pathspec.strings[n] = const_cast<char*>(pathspec[n].data());
+		}
+	}
+	
+	git_diff_list *diff;
+	int res = git_diff_tree_to_workdir(&diff, data(), oldTree.data(), &options);
+	
+	if(pathspec.size()>0)
+	{
+		delete options.pathspec.strings;
+	}
+	
+	Exception::git2_assert(res);
+	return DiffList(diff);
+}
+
 git_repository* Repository::data() const
 {
     return _repo.get();

@@ -28,6 +28,8 @@
 #include <utility>
 #include <vector>
 
+#include "diff.hpp"
+
 namespace git2
 {
 
@@ -964,6 +966,117 @@ public:
 	 */ 
 	void resetDefault(Object* target, const std::vector<std::string> pathspecs);
 	
+/** @} */
+
+/**
+ * @name Diff
+ * @{
+ */
+
+	/**
+	 * Create a diff list with the difference between two tree objects.
+	 *
+	 * This is equivalent to `git diff <old-tree> <new-tree>`
+	 *
+	 * The first tree will be used for the "old_file" side of the delta and the
+	 * second tree will be used for the "new_file" side of the delta.  You can
+	 * pass NULL to indicate an empty tree, although it is an error to pass
+	 * NULL for both the `old_tree` and `new_tree`.
+	 *
+	 * @param diff Output pointer to a git_diff_list pointer to be allocated.
+	 * @param repo The repository containing the trees.
+	 * @param oldTree A Tree object to diff from, or default constructed empty tree.
+	 * @param newTree A Tree object to diff to, or default constructed empty tree.
+	 * 
+	 * TODO add option parameter description
+	 */
+	DiffList diffTreeToTree(Tree oldTree, Tree newTree);
+	DiffList diffTreeToTree(Tree oldTree, Tree newTree,
+			uint32_t flags, uint16_t contextLines = 3, uint16_t interhunkLines = 0,
+			const std::string& oldPrefix = "a", const std::string& newPrefix = "b",
+			const std::vector<std::string>& pathspec = std::vector<std::string>() , git_off_t max_size = 512*1024*1024,
+			DiffNotifyCallbackFunction notify = DiffNotifyCallbackFunction());
+
+	/**
+	 * Create a diff list between a tree and repository index.
+	 *
+	 * This is equivalent to `git diff --cached <treeish>` or if you pass
+	 * the HEAD tree, then like `git diff --cached`.
+	 *
+	 * The tree you pass will be used for the "old_file" side of the delta, and
+	 * the index will be used for the "new_file" side of the delta.
+	 *
+	 * @param oldTree A Tree object to diff from, or default constructed empty tree.
+	 * @param index The index to diff with; repo index used if default constructed empty index.
+	 * 
+	 * TODO add option parameter description
+	 */
+	DiffList diffTreeToIndex(Tree oldTree, Index index);
+	DiffList diffTreeToIndex(Tree oldTree, Index index,
+			uint32_t flags, uint16_t contextLines = 3, uint16_t interhunkLines = 0,
+			const std::string& oldPrefix = "a", const std::string& newPrefix = "b",
+			const std::vector<std::string>& pathspec = std::vector<std::string>() , git_off_t max_size = 512*1024*1024,
+			DiffNotifyCallbackFunction notify = DiffNotifyCallbackFunction());
+
+	/**
+	 * Create a diff list between the repository index and the workdir directory.
+	 *
+	 * This matches the `git diff` command.  See the note below on
+	 * `diffTreeToWorkdir` for a discussion of the difference between
+	 * `git diff` and `git diff HEAD` and how to emulate a `git diff <treeish>`
+	 * using libgit2.
+	 *
+	 * The index will be used for the "oldFile" side of the delta, and the
+	 * working directory will be used for the "new_file" side of the delta.
+	 *
+	 * @param index The index to diff from; repo index used if default constructed empty index.
+	 * 
+	 * TODO add option parameter description
+	 */
+	DiffList diffIndexToWorkdir(Index index);
+	DiffList diffIndexToWorkdir(Index index,
+			uint32_t flags, uint16_t contextLines = 3, uint16_t interhunkLines = 0,
+			const std::string& oldPrefix = "a", const std::string& newPrefix = "b",
+			const std::vector<std::string>& pathspec = std::vector<std::string>() , git_off_t max_size = 512*1024*1024,
+			DiffNotifyCallbackFunction notify = DiffNotifyCallbackFunction());
+
+	/**
+	 * Create a diff list between a tree and the working directory.
+	 *
+	 * The tree you provide will be used for the "old_file" side of the delta,
+	 * and the working directory will be used for the "new_file" side.
+	 *
+	 * Please note: this is *NOT* the same as `git diff <treeish>`.  Running
+	 * `git diff HEAD` or the like actually uses information from the index,
+	 * along with the tree and working directory info.
+	 *
+	 * This function returns strictly the differences between the tree and the
+	 * files contained in the working directory, regardless of the state of
+	 * files in the index.  It may come as a surprise, but there is no direct
+	 * equivalent in core git.
+	 *
+	 * To emulate `git diff <treeish>`, call both `diffTreeToIndex` and
+	 * `diffIndexToWorkdir`, then call `DiffList::_merge` on the results.
+	 * That will yield a `DiffList` that matches the git output.
+	 *
+	 * If this seems confusing, take the case of a file with a staged deletion
+	 * where the file has then been put back into the working dir and modified.
+	 * The tree-to-workdir diff for that file is 'modified', but core git would
+	 * show status 'deleted' since there is a pending deletion in the index.
+	 *
+	 * @param oldTree A Tree object to diff from, or default construct for empty tree.
+	 * 
+	 * TODO add option parameter description
+	 */
+	DiffList diffTreeToWorkdir(Tree oldTree);
+	DiffList diffTreeToWorkdir(Tree oldTree,
+			uint32_t flags, uint16_t contextLines = 3, uint16_t interhunkLines = 0,
+			const std::string& oldPrefix = "a", const std::string& newPrefix = "b",
+			const std::vector<std::string>& pathspec = std::vector<std::string>() , git_off_t max_size = 512*1024*1024,
+			DiffNotifyCallbackFunction notify = DiffNotifyCallbackFunction());
+
+
+
 /** @} */
 	
     git_repository* data() const;

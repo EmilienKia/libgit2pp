@@ -220,6 +220,11 @@ bool Index::hasConflicts()const
 	return git_index_has_conflicts(data()) != 0;
 }
 
+bool Index::ok()const
+{
+    return _index.get()!=nullptr;
+}
+
 git_index* Index::data() const
 {
     return _index.get();

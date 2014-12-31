@@ -30,6 +30,8 @@ libgit2pp_la_SOURCES =  \
 	config.hpp \
 	database.cpp \
 	database.hpp \
+	diff.cpp \
+	diff.hpp \
 	exception.cpp \
 	exception.hpp \
 	index.cpp \

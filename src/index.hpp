@@ -357,6 +357,11 @@ public:
 	
 /**@}*/
 
+	/**
+	 * Test if the index is used (internal object not null).
+	 */
+	bool ok()const;
+
     git_index* data() const;
     const git_index* constData() const;
 
