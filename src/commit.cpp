@@ -36,7 +36,7 @@ Object(reinterpret_cast<git_object*>(commit))
 }
 
 Commit::Commit(const Object& object):
-Object(object.data())
+Object(object)
 {
 }
 

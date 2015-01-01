@@ -50,6 +50,73 @@ private:
     ptr_type _ptr;
 };
 
+/**
+ * Helper to easily fill and free git_strarray from string container.
+ * The git_strarray should be filled as long as the filler is OK.
+ * @tparam StringContainer Should be a container of std::string like a std::vector<std::string>
+ */
+template<class StringContainer>
+class StrArrayFiller
+{
+public:
+	StrArrayFiller(git_strarray* array, const StringContainer& container):
+	_array(array),
+	_container(container)
+	{
+		fill();
+	}
+	
+	~StrArrayFiller()
+	{
+		free();
+	}
+
+private:
+	StrArrayFiller(){}
+	
+	void fill()
+	{
+		_array->count   = _container.size();
+		_array->strings = new char*[_container.size()];
+		size_t n=0;
+		for(const std::string& val : _container)
+		{
+			_array->strings[n++] = const_cast<char*>(val.c_str());
+		}
+	}
+	
+	void free()
+	{
+		if(_array->strings!=nullptr)
+		{
+			delete _array->strings;
+			_array->strings = nullptr;
+		}
+		_array->count = 0;
+	}
+
+	git_strarray* _array;
+	const StringContainer& _container;
+};
+
+
+/**
+ * Helper function to push-back strings from git_strarray to string container.
+ * The string container must be of type container<std::string> with push_back method, like std::vector<std::string>>
+ */
+template<class StringContainer>
+void push_back(StringContainer& container, const git_strarray* array)
+{
+	if(array!=nullptr && array->count>0 && array->strings!=nullptr)
+	{
+		for(size_t n=0; n<array->count; ++n)
+		{
+			container.push_back(std::string(array->strings[n]));
+		}
+	}
+}
+
+
 } // namespace helper
 } // namespace git2
 

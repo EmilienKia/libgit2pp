@@ -65,10 +65,13 @@ include_HEADERS = git2pp.hpp
 
 git2ppincludedir = $(includedir)/git2pp
 git2ppinclude_HEADERS = \
+	common.hpp \
 	blob.hpp \
+	branch.hpp \
 	commit.hpp \
 	config.hpp \
 	database.hpp \
+	diff.hpp \
 	exception.hpp \
 	index.hpp \
 	object.hpp \
@@ -79,7 +82,8 @@ git2ppinclude_HEADERS = \
 	signature.hpp \
 	status.hpp \
 	tag.hpp \
-	tree.hpp
+	tree.hpp \
+	remote.hpp
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libgit2pp.pc

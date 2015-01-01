@@ -19,6 +19,7 @@
 
 #include "remote.hpp"
 
+#include "common.hpp"
 #include "exception.hpp"
 
 namespace git2
@@ -146,10 +147,7 @@ std::vector<std::string> Remote::getFetchRefspec()
     std::vector<std::string> list;
     git_strarray arr;
     Exception::git2_assert(git_remote_get_fetch_refspecs(&arr, data()));
-    for(size_t i = 0; i < arr.count; ++i)
-    {
-        list.push_back(std::string(arr.strings[i]));
-    }
+    helper::push_back(list, &arr);
     git_strarray_free(&arr);
     return list;
 }
@@ -164,10 +162,7 @@ std::vector<std::string> Remote::getPushRefspec()
     std::vector<std::string> list;
     git_strarray arr;
     Exception::git2_assert(git_remote_get_push_refspecs(&arr, data()));
-    for(size_t i = 0; i < arr.count; ++i)
-    {
-        list.push_back(std::string(arr.strings[i]));
-    }
+    helper::push_back(list, &arr);
     git_strarray_free(&arr);
     return list;
 }

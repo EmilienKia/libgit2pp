@@ -22,15 +22,20 @@
 
 #include <git2.h>
 
+#include "git2pp/common.hpp"
+
 #include "git2pp/blob.hpp"
+#include "git2pp/branch.hpp"
 #include "git2pp/commit.hpp"
 #include "git2pp/config.hpp"
 #include "git2pp/database.hpp"
+#include "git2pp/diff.hpp"
 #include "git2pp/exception.hpp"
 #include "git2pp/index.hpp"
 #include "git2pp/object.hpp"
 #include "git2pp/oid.hpp"
 #include "git2pp/ref.hpp"
+#include "git2pp/remote.hpp"
 #include "git2pp/repository.hpp"
 #include "git2pp/revwalk.hpp"
 #include "git2pp/signature.hpp"

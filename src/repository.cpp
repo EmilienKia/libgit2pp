@@ -398,10 +398,7 @@ std::list<std::string> Repository::listTags(const std::string& pattern) const
 		Exception::git2_assert(git_tag_list(&tags, data()));
 	else
 	    Exception::git2_assert(git_tag_list_match(&tags, pattern.c_str(), data()));
-    for(size_t i = 0; i < tags.count; ++i)
-    {
-        list.push_back(std::string(tags.strings[i]));
-    }
+	helper::push_back(list, &tags);
     git_strarray_free(&tags);
     return list;
 }
@@ -411,10 +408,7 @@ std::list<std::string> Repository::listReferences() const
     std::list<std::string> list;
     git_strarray refs;
     Exception::git2_assert(git_reference_list(&refs, data()));
-    for(size_t i = 0; i < refs.count; ++i)
-    {
-        list.push_back(std::string(refs.strings[i]));
-    }
+    helper::push_back(list, &refs);
     git_strarray_free(&refs);
     return list;
 }
@@ -525,10 +519,7 @@ std::vector<std::string> Repository::listRemote()
     std::vector<std::string> list;
     git_strarray repos;
     Exception::git2_assert(git_remote_list(&repos, data()));
-    for(size_t i = 0; i < repos.count; ++i)
-    {
-        list.push_back(std::string(repos.strings[i]));
-    }
+    helper::push_back(list, &repos);
     git_strarray_free(&repos);
     return list;
 }
@@ -648,17 +639,10 @@ void Repository::reset(Object& target, git_reset_t resetType)
 void Repository::resetDefault(Object* target, const std::vector<std::string> pathspecs)
 {
 	git_strarray arr;
-	arr.strings = new char*[pathspecs.size()];
-	arr.count = pathspecs.size();
-	for(size_t i=0; i<pathspecs.size(); ++i) {
-		arr.strings[i] = const_cast<char*>(pathspecs[i].data());
-	}
-	
+	helper::StrArrayFiller<std::vector<std::string> > filler(&arr, pathspecs);
 	try {
 		Exception::git2_assert(git_reset_default(data(), target!=NULL?target->data():NULL, &arr));
-		delete arr.strings;
 	} catch( Exception ex ) {
-		delete arr.strings;
 		throw ex;
 	}
 }
