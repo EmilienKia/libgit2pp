@@ -91,7 +91,8 @@ Object(tree)
 {
 }
 
-Tree::~Tree()
+Tree::Tree(const Object& object):
+Object(object.data())
 {
 }
 

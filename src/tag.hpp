@@ -46,15 +46,15 @@ public:
     explicit Tag(git_tag *tag = 0);
 
     /**
+     * Casting from Object constructor.
+     */
+    Tag(const Object& object);
+    
+    /**
      * Copy constructor; creates a copy of the object, sharing the same underlaying data
      * structure.
      */
     Tag(const Tag& other);
-
-    /**
-     * Destroys the object.
-     */
-    ~Tag();
 
     /**
      * Get the id of a tag.

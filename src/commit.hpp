@@ -50,15 +50,15 @@ public:
     explicit Commit(git_commit *commit = 0);
 
     /**
+     * Casting from Object constructor.
+     */
+    Commit(const Object& object);
+
+    /**
      * Copy constructor; creates a copy of the object, sharing the same underlaying data
      * structure.
      */
     Commit(const Commit& other);
-
-    /**
-     * Destroys the object.
-     */
-    ~Commit();
 
     /**
     * Get the id of a commit.
@@ -170,9 +170,7 @@ public:
      */
     Commit getNthGenAncestor(unsigned n) const;
     
-
     git_commit* data() const;
-    const git_commit* constData() const;
 };
 
 

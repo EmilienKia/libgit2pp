@@ -29,97 +29,76 @@
 namespace git2
 {
 
-namespace
-{
-
-struct GitObjectDeleter{
-	void operator()(git_object *object){
-		git_object_free(object);
-	}
-};
-
-}
-
 
 //
 // Object
 //
 
-// git_object_free() is automatically invoked on the pointer when
-// it is no more referenced.
 Object::Object(git_object *object):
-_obj(object, GitObjectDeleter())
+_Class(object)
 {
 }
 
 Object::Object(const Object& other):
-_obj(other._obj)
-{
-}
-
-Object::~Object()
+_Class(other.data())
 {
 }
 
 Commit Object::toCommit() const
 {
-    Commit commit;
-    if (isCommit()) {
-        commit._obj = _obj;
-    }
-    return commit;
+	if(isCommit())
+		return Commit(*this);
+	else
+		return Commit();
 }
 
 Tag Object::toTag() const
 {
-    Tag tag;
-    if (isTag()) {
-        tag._obj = _obj;
-    }
-    return tag;
+	if(isTag())
+		return Tag(*this);
+	else
+		return Tag();
 }
 
 Tree Object::toTree() const
 {
-    Tree tree;
-    if (isTree()) {
-        tree._obj = _obj;
-    }
-    return tree;
+	if(isTree())
+		return Tree(*this);
+	else
+		return Tree();
 }
 
 Blob Object::toBlob() const
 {
-    Blob blob;
-    if (isBlob()) {
-        blob._obj = _obj;
-    }
-    return blob;
+	if(isBlob())
+		return Blob(*this);
+	else
+		return Blob();
 }
 
 bool Object::isNull() const
 {
-    return (bool)_obj;
+    return data()==nullptr;
 }
 
 OId Object::oid() const
 {
-    return OId(git_object_id(_obj.get()));
+    return OId(git_object_id(data()));
 }
 
 bool Object::checkType(Type type) const
 {
-	return git_object_type(_obj.get()) == (git_otype)type;
+	return git_object_type(data()) == (git_otype)type;
 }
 
 Object::Type Object::getType() const
 {
-	return (Object::Type) git_object_type(_obj.get());
+	return (Object::Type) git_object_type(data());
 }
 
 std::string Object::getTypeString() const
 {
-	return std::string(git_object_type2string(git_object_type(_obj.get())));
+	return std::string(git_object_type2string(git_object_type(data())));
 }
 
 std::string Object::type2String(Object::Type type)
@@ -140,47 +119,27 @@ bool Object::isLooseType(Object::Type type)
 
 bool Object::isCommit() const
 {
-    return git_object_type(_obj.get()) == GIT_OBJ_COMMIT;
+    return git_object_type(data()) == GIT_OBJ_COMMIT;
 }
 
 bool Object::isTag() const
 {
-    return git_object_type(_obj.get()) == GIT_OBJ_TAG;
+    return git_object_type(data()) == GIT_OBJ_TAG;
 }
 
 bool Object::isTree() const
 {
-    return git_object_type(_obj.get()) == GIT_OBJ_TREE;
+    return git_object_type(data()) == GIT_OBJ_TREE;
 }
 
 bool Object::isBlob() const
 {
-    return git_object_type(_obj.get()) == GIT_OBJ_BLOB;
+    return git_object_type(data()) == GIT_OBJ_BLOB;
 }
 
 std::string Object::typeString() const
 {
-    return std::string(git_object_type2string(git_object_type(_obj.get())));
-}
-
-Repository Object::owner() const
-{
-    return Repository(git_object_owner(_obj.get()));
-}
-
-bool Object::ok()const
-{
-    return _obj.get()!=nullptr;
-}
-
-git_object* Object::data() const
-{
-    return _obj.get();
-}
-
-const git_object* Object::constData() const
-{
-    return _obj.get();
+    return std::string(git_object_type2string(git_object_type(data())));
 }
 
 } // namespace git2

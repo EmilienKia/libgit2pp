@@ -33,12 +33,13 @@ Object(reinterpret_cast<git_object*>(tag))
 {
 }
 
-Tag::Tag(const Tag& other):
-Object(other)
+Tag::Tag(const Object& object):
+Object(object.data())
 {
 }
 
-Tag::~Tag()
+Tag::Tag(const Tag& other):
+Object(other)
 {
 }
 

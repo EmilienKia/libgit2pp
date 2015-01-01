@@ -215,12 +215,12 @@ std::string StatusEntry::path() const
 //
 
 StatusList::StatusList(git_status_list *statusList):
-_statusList(statusList, git_status_list_free)
+_Class(statusList)
 {
 }
 
-StatusList::StatusList(const StatusList &statusList):
-_statusList(statusList._statusList)
+StatusList::StatusList(const StatusList &other):
+_Class(other.data())
 {
 }
 
@@ -238,15 +238,6 @@ const StatusEntry StatusList::entryByIndex(size_t idx)
     return StatusEntry(git_status_byindex(data(), idx));
 }
 
-git_status_list* StatusList::data() const
-{
-    return _statusList.get();
-}
-
-const git_status_list* StatusList::constData() const
-{
-    return _statusList.get();
-}
 
 #endif // libgit_v0_19_0
 

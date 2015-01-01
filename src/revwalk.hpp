@@ -25,6 +25,8 @@
 #include <memory>
 #include <string>
 
+#include "common.hpp"
+
 namespace git2
 {
 
@@ -39,7 +41,7 @@ class Repository;
   * The revision walker can be used to traverse Git commit history.
   * It features sorting abilities and more.
   */
-class  RevWalk
+class  RevWalk : public helper::Git2PtrWrapper<git_revwalk, git_revwalk_free>
 {
 public:
     /**
@@ -57,7 +59,7 @@ public:
 
     RevWalk(git_revwalk* revwalk);
 
-    RevWalk( const RevWalk& revwalk );
+    RevWalk( const RevWalk& other );
 
     /**
      * Delete a revwalk previously allocated.
@@ -229,14 +231,6 @@ public:
      * @param sortMode The sorting mode @see SortModes.
      */
     void setSorting(SortModes sortMode);
-
-
-    git_revwalk* data() const;
-    const git_revwalk* constData() const;
-
-private:
-    typedef std::shared_ptr<git_revwalk> ptr_type;
-    ptr_type _revwalk;
 };
 
 

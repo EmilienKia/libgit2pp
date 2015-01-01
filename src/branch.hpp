@@ -24,6 +24,8 @@
 
 #include <memory>
 
+#include "common.hpp"
+
 namespace git2
 {
 
@@ -38,7 +40,7 @@ class Signature;
  * Represents a Git branch.
  * Internally, branches are references.
  */
-class Branch
+class Branch : public helper::Git2PtrWrapper<git_reference, git_reference_free>
 {
 public:
 
@@ -51,11 +53,6 @@ public:
      * Copy constructor
      */
     Branch(const Branch& other);
-
-    /**
-     * Free an existing branch object.
-     */
-    ~Branch();
 
 	/**
 	 * Delete an existing branch reference.
@@ -96,12 +93,6 @@ public:
 	 */
 	void setUpstream(const std::string& upstreamName);
 
-    git_reference* data() const;
-    const git_reference* constData() const;
-
-private:
-    typedef std::shared_ptr<git_reference> ptr_type;
-    ptr_type _ref;
 };
 
 } // namespace git2

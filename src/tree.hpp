@@ -95,15 +95,15 @@ public:
     explicit Tree(git_tree *tree = 0);
 
     /**
+     * Casting from Object constructor.
+     */
+    Tree(const Object& object);
+    
+    /**
      * Copy constructor; creates a copy of the object, sharing the same underlaying data
      * structure.
      */
     Tree(const Tree& tree);
-
-    /**
-     * Destroys the object.
-     */
-    ~Tree();
 
     /**
      * * Get the id of a tree.

@@ -41,14 +41,15 @@ public:
     explicit Blob(git_blob *blob = NULL);
 
     /**
+     * Casting from Object constructor.
+     */
+    Blob(const Object& object);
+
+    /**
      * Copy constructor.
      */
     Blob(const Blob& other);
 
-    /**
-     * Destroy the object.
-     */
-    ~Blob();
 
     /**
      * Determine if the blob content is most certainly binary or not.
@@ -81,7 +82,6 @@ public:
     int64_t rawSize() const;
 
     git_blob* data() const;
-    const git_blob* constData() const;
 };
 
 } // namespace git2

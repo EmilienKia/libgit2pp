@@ -28,32 +28,17 @@
 namespace git2
 {
 
-namespace
-{
-
-struct GitReferenceDeleter{
-	void operator()(git_reference *object){
-		git_reference_free(object);
-	}
-};
-
-}
-
 //
 // Branch
 //
 
 Branch::Branch(git_reference *ref):
-_ref(ref, GitReferenceDeleter())
+_Class(ref)
 {
 }
 
-Branch::Branch(const Branch& ref):
-_ref(ref._ref)
-{
-}
-
-Branch::~Branch()
+Branch::Branch(const Branch& other):
+_Class(other.data())
 {
 }
 
@@ -71,7 +56,7 @@ void Branch::move(const std::string& branchName, bool force)
 {
 	git_reference *out;
 	Exception::git2_assert(git_branch_move(&out, data(), branchName.c_str(), force?1:0));
-	_ref = ptr_type(out, GitReferenceDeleter());
+	*this = Branch(out);
 }
 
 std::string Branch::name() const
@@ -92,19 +77,6 @@ void Branch::setUpstream(const std::string& upstreamName)
 {
 	Exception::git2_assert(git_branch_set_upstream(data(), upstreamName.c_str()));
 }
-
-
-git_reference* Branch::data() const
-{
-    return _ref.get();
-}
-
-const git_reference* Branch::constData() const
-{
-    return _ref.get();
-}
-
-
 
 } // namespace git2
 

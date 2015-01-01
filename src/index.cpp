@@ -74,24 +74,13 @@ const git_index_entry *IndexEntry::constData() const
 // Index
 //
 
-namespace
-{
-
-struct GitIndexDeleter{
-	void operator()(git_index *index){
-		git_index_free(index);
-	}
-};
-
-}
-
-Index::Index(git_index *index)
-    : _index(index, GitIndexDeleter())
+Index::Index(git_index *index):
+_Class(index)
 {
 }
 
-Index::Index(const Index& index)
-    : _index(index._index)
+Index::Index(const Index& other):
+_Class(other.data())
 {
 }
 
@@ -101,15 +90,14 @@ Index::~Index()
 
 void Index::open(const std::string& indexPath)
 {
-    _index.reset();
     git_index *index = NULL;
     Exception::git2_assert(git_index_open(&index, indexPath.c_str()));
-    _index = ptr_type(index, GitIndexDeleter());
+    *this = Index(index);
 }
 
 unsigned int Index::getCapabilities()const
 {
-	return git_index_caps(constData());
+	return git_index_caps(data());
 }
 
 void Index::setCapabilities(unsigned int caps)
@@ -218,21 +206,6 @@ void Index::cleanupConflict()
 bool Index::hasConflicts()const
 {
 	return git_index_has_conflicts(data()) != 0;
-}
-
-bool Index::ok()const
-{
-    return _index.get()!=nullptr;
-}
-
-git_index* Index::data() const
-{
-    return _index.get();
-}
-
-const git_index* Index::constData() const
-{
-    return _index.get();
 }
 
 

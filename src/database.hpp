@@ -22,6 +22,9 @@
 
 #include <git2.h>
 
+
+#include "common.hpp"
+
 #include "oid.hpp"
 #include "object.hpp"
 
@@ -79,12 +82,11 @@ private:
 /**
  * Represents a Git object.
  */
-class DatabaseObject
+class DatabaseObject : public helper::Git2PtrWrapper<git_odb_object, git_odb_object_free>
 {
 public:
 	DatabaseObject(git_odb_object* obj);
-	DatabaseObject(const DatabaseObject& obj);
-	~DatabaseObject();
+	DatabaseObject(const DatabaseObject& other);
 
 	/**
 	 * Return the size of an ODB object.
@@ -101,7 +103,7 @@ public:
 	 * 
 	 * This pointer is owned by the object and shall not be free'd.
 	 */
-	const void* data();
+	const void* raw();
 
 	/**
 	 * Return the OID of an ODB object.
@@ -114,10 +116,6 @@ public:
 	 * Return the type of an ODB object.
 	 */
 	Object::Type type();
-
-private:
-    typedef std::shared_ptr<git_odb_object> ptr_type;
-    ptr_type _obj;
 
 };
 
@@ -293,10 +291,7 @@ public:
 	 */
 	OId write(const void* data, size_t len, Object::Type type);
 
-
     git_odb* data() const;
-    const git_odb* constData() const;
-
 private:
     git_odb *_db;
 };

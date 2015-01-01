@@ -80,49 +80,34 @@ const git_odb_backend* DatabaseBackend::constData() const
 // DatabaseObject
 //
 
-namespace
-{
-
-struct GitDatabaseObjectDeleter{
-	void operator()(git_odb_object *obj){
-		git_odb_object_free(obj);
-	}
-};
-
-} // namespace
-
 DatabaseObject::DatabaseObject(git_odb_object* obj):
-_obj(obj, GitDatabaseObjectDeleter())
+_Class(obj)
 {
 }
 
-DatabaseObject::DatabaseObject(const DatabaseObject& obj):
-_obj(obj._obj)
-{
-}
-
-DatabaseObject::~DatabaseObject()
+DatabaseObject::DatabaseObject(const DatabaseObject& other):
+_Class(other.data())
 {
 }
 
 size_t DatabaseObject::size()
 {
-	return git_odb_object_size(_obj.get());
+	return git_odb_object_size(data());
 }
 
-const void* DatabaseObject::data()
+const void* DatabaseObject::raw()
 {
-	return git_odb_object_data(_obj.get());
+	return git_odb_object_data(data());
 }
 
 OId DatabaseObject::oid()
 {
-	return OId(git_odb_object_id(_obj.get()));
+	return OId(git_odb_object_id(data()));
 }
 
 Object::Type DatabaseObject::type()
 {
-	return (Object::Type)git_odb_object_type(_obj.get());
+	return (Object::Type)git_odb_object_type(data());
 }
 
 //
@@ -229,11 +214,6 @@ OId Database::write(const void* data, size_t len, Object::Type type)
 
 
 git_odb* Database::data() const
-{
-    return _db;
-}
-
-const git_odb* Database::constData() const
 {
     return _db;
 }

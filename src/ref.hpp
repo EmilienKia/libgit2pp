@@ -24,6 +24,9 @@
 
 #include <memory>
 
+#include "common.hpp"
+
+
 namespace git2
 {
 
@@ -37,7 +40,7 @@ class Signature;
  * Represents a Git reference.
  * Reference objects are branches, tags, etc.
  */
-class Reference
+class Reference : public helper::Git2PtrWrapper<git_reference, git_reference_free>
 {
 public:
 
@@ -50,11 +53,6 @@ public:
      * Copy constructor
      */
     Reference(const Reference& other);
-
-    /**
-     * Free an existing reference object.
-     */
-    ~Reference();
 
     /**
      * Get the OID pointed to by a reference.
@@ -243,7 +241,7 @@ public:
 	 * @return The reflog.
 	 * @throws Exception
 	 */
-	RefLog* readRefLog();
+	RefLog readRefLog();
 
 	/**
 	 * Rename the reflog for the given reference
@@ -290,12 +288,6 @@ public:
      */
 	static std::string normalizeName(const std::string& name, unsigned int flags=GIT_REF_FORMAT_NORMAL);
 
-    git_reference* data() const;
-    const git_reference* constData() const;
-
-private:
-    typedef std::shared_ptr<git_reference> ptr_type;
-    ptr_type _ref;
 };
 
 /**
@@ -315,7 +307,7 @@ bool operator > (const Reference& ref1, const Reference& ref2);
 /**
  * Represents a Git reflog.
  */
-class RefLog
+class RefLog : public helper::Git2PtrWrapper<git_reflog, git_reflog_free>
 {
 public:
     /**
@@ -326,7 +318,7 @@ public:
     /**
      * Copy constructor
      */	
-	RefLog(const RefLog& reflog);
+	RefLog(const RefLog& other);
 
 	/**
 	 * Destructor.
@@ -374,15 +366,6 @@ public:
 	 * @return The entry; NULL if not found
 	 */
 	RefLogEntry* getEntry(size_t idx);
-	
-	
-	
-	git_reflog* data() const;
-    const git_reflog* constData() const;
-
-private:
-    typedef std::shared_ptr<git_reflog> ptr_type;
-    ptr_type _reflog;
 };
 
 /**

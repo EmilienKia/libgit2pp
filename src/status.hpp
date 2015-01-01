@@ -25,6 +25,8 @@
 #include <memory>
 #include <string>
 
+#include "common.hpp"
+
 namespace git2
 {
 
@@ -217,12 +219,12 @@ private:
  * Represents a list of status entries in a Git repository. This is not a simple QList of StatusEntry,
  * it wraps the underlying libgit2 functions.
  */
-class StatusList
+class StatusList  : public helper::Git2PtrWrapper<git_status_list, git_status_list_free>
 {
 public:
     StatusList(git_status_list *statusList = NULL);
 
-    StatusList(const StatusList& statusList);
+    StatusList(const StatusList& other);
 
     ~StatusList();
 
@@ -235,13 +237,6 @@ public:
      * Returns the entry with the given index.
      */
     const StatusEntry entryByIndex(size_t idx);
-
-    git_status_list* data() const;
-    const git_status_list* constData() const;
-
-private:
-    typedef std::shared_ptr<git_status_list> ptr_type;
-    ptr_type _statusList;
 
 };
 

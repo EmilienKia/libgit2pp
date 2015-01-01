@@ -28,25 +28,13 @@
 namespace git2
 {
 
-namespace
+RevWalk::RevWalk(git_revwalk* revwalk):
+_Class(revwalk)
 {
-
-struct GitRevWalkDeleter{
-	void operator()(git_revwalk *repo){
-		git_revwalk_free(repo);
-	}
-};
-
 }
 
-
-RevWalk::RevWalk(git_revwalk* revwalk)
-{
-	_revwalk = ptr_type(revwalk,  GitRevWalkDeleter());
-}
-
-RevWalk::RevWalk( const RevWalk& revwalk ):
-_revwalk(revwalk._revwalk)
+RevWalk::RevWalk( const RevWalk& other ):
+_Class(other.data())
 {
 }
 
@@ -134,17 +122,6 @@ void RevWalk::setSorting(SortModes sm)
 {
     git_revwalk_sorting(data(), sm);
 }
-
-git_revwalk* RevWalk::data() const
-{
-    return _revwalk.get();;
-}
-
-const git_revwalk* RevWalk::constData() const
-{
-    return _revwalk.get();;
-}
-
 
 
 } // namespace git2

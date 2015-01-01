@@ -26,6 +26,8 @@
 #include <string>
 #include <vector>
 
+#include "common.hpp"
+
 namespace git2
 {
 	
@@ -41,7 +43,7 @@ class Tree;
  * This is the base class for every repository object, i.e. blob, commit,
  * tag and tree. Every object is identified with it's git2::OId.
  */
-class Object
+class Object : public helper::Git2PtrWrapper<git_object, git_object_free>
 {
 public:
 
@@ -71,11 +73,6 @@ public:
      * Copy constructor.
      */
     Object(const Object& other);
-
-    /**
-     * Destroy the object.
-     */
-    ~Object();
 
     /**
      * Convert into a commit object.
@@ -208,23 +205,6 @@ public:
      * Get the object type as a string.
      */
     std::string typeString() const;
-
-    /**
-     * Get the repository that owns this object.
-     */
-    Repository owner() const;
-
-	/**
-	 * Test if the object is used (internal object not null).
-	 */
-	bool ok()const;
-
-    git_object* data() const;
-    const git_object* constData() const;
-
-private:
-	std::shared_ptr<git_object> _obj;
-		
 };
 
 } // namespace git2

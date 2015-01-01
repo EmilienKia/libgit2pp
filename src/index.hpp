@@ -24,6 +24,8 @@
 
 #include <memory>
 
+#include "common.hpp"
+
 namespace git2
 {
 
@@ -83,7 +85,7 @@ private:
 /**
  * Represents a Git index a.k.a "the stage".
  */
-class Index
+class Index : public helper::Git2PtrWrapper<git_index, git_index_free>
 {
 public:
 
@@ -98,7 +100,7 @@ public:
      * Copy constructor; creates a copy of the object, sharing the same underlaying data
      * structure.
      */
-    Index(const Index& index);
+    Index(const Index& other);
 
     /**
      * Destruct an existing index object.
@@ -356,18 +358,6 @@ public:
 	// TODO add functions related to conflict iterators.
 	
 /**@}*/
-
-	/**
-	 * Test if the index is used (internal object not null).
-	 */
-	bool ok()const;
-
-    git_index* data() const;
-    const git_index* constData() const;
-
-private:
-    typedef std::shared_ptr<git_index> ptr_type;
-    ptr_type _index;
 };
 
 

@@ -35,12 +35,13 @@ Object(reinterpret_cast<git_object*>(commit))
 {
 }
 
-Commit::Commit(const Commit& other):
-Object(other)
+Commit::Commit(const Object& object):
+Object(object.data())
 {
 }
 
-Commit::~Commit()
+Commit::Commit(const Commit& other):
+Object(other)
 {
 }
 
@@ -129,11 +130,6 @@ Commit Commit::getNthGenAncestor(unsigned n) const
 }
 
 git_commit* Commit::data() const
-{
-    return reinterpret_cast<git_commit*>(Object::data());
-}
-
-const git_commit* Commit::constData() const
 {
     return reinterpret_cast<git_commit*>(Object::data());
 }

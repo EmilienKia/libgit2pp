@@ -28,6 +28,8 @@
 #include <utility>
 #include <vector>
 
+#include "common.hpp"
+
 #include "diff.hpp"
 
 namespace git2
@@ -54,7 +56,7 @@ class StatusOptions;
 /**
  * Represents a Git repository.
  */
-class Repository
+class Repository : public helper::Git2PtrWrapper<git_repository, git_repository_free>
 {
 public:
 
@@ -66,7 +68,7 @@ public:
      * sharing the ownership. If `own` is true, the pointer must not be freed manually,
      * and must not be passed to another Repository instance also with `own` true.
      */
-    Repository(git_repository *repository = NULL, bool own = false);
+    Repository(git_repository *repository = NULL/*, bool own = false*/);
 
     /**
      * Copy constructor; creates a copy of the object, sharing the same underlaying data
@@ -1078,13 +1080,6 @@ public:
 
 
 /** @} */
-	
-    git_repository* data() const;
-    const git_repository* constData() const;
-
-private:
-    typedef std::shared_ptr<git_repository> ptr_type;
-    ptr_type _repo;
 };
 
 } // namespace git2

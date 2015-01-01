@@ -17,52 +17,41 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
 
-#include "blob.hpp"
+#ifndef _GIT2PP_COMMON_HPP_
+#define _GIT2PP_COMMON_HPP_
 
+#include <git2.h>
+
+#include <memory>
 
 namespace git2
 {
-
-Blob::Blob(git_blob *blob):
-Object(reinterpret_cast<git_object*>(blob))
+namespace helper
 {
-}
 
-Blob::Blob(const Object& object):
-Object(object.data())
+/**
+ * Represents a Git wrapped structure pointer.
+ */
+template<class _Type, void(*_Deleter)(_Type*) = nullptr>
+class Git2PtrWrapper
 {
-}
+public:
+	typedef Git2PtrWrapper<_Type,_Deleter> _Class;
 
+	Git2PtrWrapper(){}
+	Git2PtrWrapper(_Type* ptr):_ptr(ptr, _Deleter){} // Todo protect deleter from null pointer
+	Git2PtrWrapper(const _Class& other):_ptr(other._ptr){}
 
-Blob::Blob( const Blob& other ):
-Object(other)
-{
-}
+	bool ok()const{return _ptr.get()!=nullptr;}
+	_Type* data() const {return _ptr.get();}
 
-bool Blob::isBinary() const
-{
-    return git_blob_is_binary(data()) != 0;
-}
+private:
+    typedef std::shared_ptr<_Type> ptr_type;
+    ptr_type _ptr;
+};
 
-const void* Blob::rawContent() const
-{
-    return git_blob_rawcontent(data());
-}
-
-std::vector<unsigned char> Blob::content() const
-{
-    return std::vector<unsigned char>( static_cast<const char *>(rawContent()), static_cast<const char *>(rawContent())+rawSize() );
-}
-
-int64_t Blob::rawSize() const
-{
-    return git_blob_rawsize(data());
-}
-
-git_blob* Blob::data() const
-{
-    return reinterpret_cast<git_blob*>(Object::data());
-}
-
+} // namespace helper
 } // namespace git2
+
+#endif // _GIT2PP_COMMON_HPP_
 

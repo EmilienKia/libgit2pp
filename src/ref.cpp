@@ -27,106 +27,81 @@
 namespace git2
 {
 
-namespace
-{
-
-struct GitReferenceDeleter{
-	void operator()(git_reference *object){
-		git_reference_free(object);
-	}
-};
-
-
-struct GitRefLogDeleter{
-	void operator()(git_reflog *object){
-		git_reflog_free(object);
-	}
-};
-
-
-
-}
-
 //
 // Reference
 //
 
 Reference::Reference(git_reference *ref):
-_ref(ref, GitReferenceDeleter())
+_Class(ref)
 {
 }
 
-Reference::Reference(const Reference& ref):
-_ref(ref._ref)
-{
-}
-
-Reference::~Reference()
+Reference::Reference(const Reference& other):
+_Class(other.data())
 {
 }
 
 OId Reference::target() const
 {
-	return OId(git_reference_target(_ref.get()));
+	return OId(git_reference_target(data()));
 }
 
 OId Reference::peeledTarget() const
 {
-	return OId(git_reference_target_peel(_ref.get()));
-	return OId(git_reference_target_peel(_ref.get()));
+	return OId(git_reference_target_peel(data()));
 }
 
 git_ref_t Reference::type()const
 {
-	return git_reference_type(_ref.get());
+	return git_reference_type(data());
 }
 
 bool Reference::isDirect() const
 {
-    return git_reference_type(_ref.get()) == GIT_REF_OID;
+    return git_reference_type(data()) == GIT_REF_OID;
 }
 
 bool Reference::isSymbolic() const
 {
-    return git_reference_type(_ref.get()) == GIT_REF_SYMBOLIC;
+    return git_reference_type(data()) == GIT_REF_SYMBOLIC;
 }
 
 bool Reference::isBranch() const
 {
-	return git_reference_is_branch(_ref.get()) != 0;
+	return git_reference_is_branch(data()) != 0;
 }
 
 bool Reference::isRemote() const
 {
-	return git_reference_is_remote(_ref.get());
+	return git_reference_is_remote(data());
 }
 
 std::string Reference::name() const
 {
-    return std::string(git_reference_name(_ref.get()));
+    return std::string(git_reference_name(data()));
 }
 
 std::string Reference::symbolicTarget()const
 {
-	return std::string(git_reference_symbolic_target(_ref.get()));
+	return std::string(git_reference_symbolic_target(data()));
 }
 
 Reference Reference::resolve() const
 {
     git_reference *ref;
-    Exception::git2_assert(git_reference_resolve(&ref, _ref.get()));
+    Exception::git2_assert(git_reference_resolve(&ref, data()));
     return Reference(ref);
 }
 
 Repository Reference::owner() const
 {
-    return Repository(git_reference_owner(_ref.get()));
+    return Repository(git_reference_owner(data()));
 }
 
 Reference Reference::setSymbolicTarget(const std::string& target)
 {
 	git_reference *out;
-    Exception::git2_assert(git_reference_symbolic_set_target(&out, _ref.get(), target.c_str()));
+    Exception::git2_assert(git_reference_symbolic_set_target(&out, data(), target.c_str()));
     return Reference(out);
 }
 
@@ -134,27 +109,27 @@ void Reference::setTarget(const OId& oid)
 {
 	git_reference *ref;
     Exception::git2_assert(git_reference_set_target(&ref, data(), oid.constData()));
-    _ref = ptr_type(ref, GitReferenceDeleter());
+    *this = Reference(ref);
 }
 
 void Reference::rename(const std::string name, bool force)
 {
 	git_reference *ref;
 	Exception::git2_assert(git_reference_rename(&ref, data(), name.c_str(), force?1:0));
-	_ref = ptr_type(ref, GitReferenceDeleter());
+    *this = Reference(ref);
 }
 
 void Reference::deleteReference()
 {
 	Exception::git2_assert(git_reference_delete(data()));
-	_ref.reset();
+    *this = Reference();
 }
 
-RefLog* Reference::readRefLog()
+RefLog Reference::readRefLog()
 {
 	git_reflog *reflog;
 	Exception::git2_assert(git_reflog_read(&reflog, data()));
-	return new RefLog(reflog);
+	return RefLog(reflog);
 }
 
 void Reference::renameRefLog(const std::string name)
@@ -174,7 +149,7 @@ bool Reference::isNull() const
 
 int Reference::compare(const Reference& ref)const
 {
-	return git_reference_cmp(_ref.get(), ref._ref.get());
+	return git_reference_cmp(data(), ref.data());
 }
 
 bool Reference::isValidName(const std::string& name)
@@ -188,17 +163,6 @@ std::string Reference::normalizeName(const std::string& name, unsigned int flags
 	Exception::git2_assert(git_reference_normalize_name(buffer, GIT_PATH_MAX-1, name.c_str(), flags));
 	return std::string(buffer);
 }
-
-git_reference* Reference::data() const
-{
-    return _ref.get();
-}
-
-const git_reference* Reference::constData() const
-{
-    return _ref.get();
-}
-
 
 bool operator == (const Reference& ref1, const Reference& ref2)
 {
@@ -236,12 +200,12 @@ bool operator < (const Reference& ref1, const Reference& ref2)
 //
 
 RefLog::RefLog(git_reflog *reflog):
-_reflog(reflog, GitRefLogDeleter())
+_Class(reflog)
 {
 }
 
-RefLog::RefLog(const RefLog& reflog):
-_reflog(reflog._reflog)
+RefLog::RefLog(const RefLog& other):
+_Class(other.data())
 {
 }
 
@@ -276,16 +240,6 @@ RefLogEntry* RefLog::getEntry(size_t idx)
 		return new RefLogEntry(entry);
 	else
 		return NULL;
-}
-
-git_reflog* RefLog::data() const
-{
-    return _reflog.get();
-}
-
-const git_reflog* RefLog::constData() const
-{
-    return _reflog.get();
 }
 
 
