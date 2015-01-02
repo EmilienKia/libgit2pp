@@ -23,14 +23,12 @@
 namespace git2
 {
 
-#ifdef libgit_v0_18_0
-
 //
 // Status
 //
 
-Status::Status(const git_status_t _statusFlags):
-_status(_statusFlags)
+Status::Status(unsigned int statusFlags):
+_status(statusFlags)
 {
 }
 
@@ -100,76 +98,12 @@ bool Status::isTypeChangedInWorkdir() const
 
 unsigned int Status::data() const
 {
-    return (unsigned int)_status;
+    return _status;
 }
-
-
-#endif // libgit_v0_18_0
-
-//
-// StatusOptions
-//
-
-StatusOptions::StatusOptions()
-{
-// TODO only available from v0.18.0
-//    _statusOptions.version = GIT_STATUS_OPTIONS_VERSION;
-}
-
-StatusOptions::StatusOptions(git_status_options statusOptions):
-_statusOptions(statusOptions)
-{
-}
-
-StatusOptions::StatusOptions(const StatusOptions &statusOptions):
-_statusOptions(statusOptions._statusOptions)
-{
-}
-
-StatusOptions::~StatusOptions()
-{
-}
-
-StatusOptions::ShowFlags StatusOptions::showFlags() const
-{
-    return _showFlags;
-}
-
-void StatusOptions::setShowFlags(StatusOptions::ShowFlags sf)
-{
-    _showFlags = sf;
-    int i = _showFlags;
-    _statusOptions.show = (git_status_show_t)i;
-
-}
-
-StatusOptions::StatusFlags StatusOptions::statusFlags() const
-{
-    return _statusFlags;
-}
-
-void StatusOptions::setStatusFlags(StatusOptions::StatusFlags sf)
-{
-    _statusFlags = sf;
-    _statusOptions.flags = _statusFlags;
-}
-
-git_status_options StatusOptions::data() const
-{
-    return _statusOptions;
-}
-
-const git_status_options StatusOptions::constData() const
-{
-    return _statusOptions;
-}
-
 
 //
 // StatusEntry
 //
-
-#ifdef libgit_v0_19_0
 
 StatusEntry::StatusEntry(const git_status_entry *entry):
 _entry(entry)
@@ -188,6 +122,16 @@ StatusEntry::~StatusEntry()
 Status StatusEntry::status() const
 {
     return Status(_entry->status);
+}
+
+DiffDelta StatusEntry::headToIndexDelta()
+{
+	return DiffDelta(_entry->head_to_index);
+}
+
+DiffDelta StatusEntry::indexToWorkdirDelta()
+{
+	return DiffDelta(_entry->index_to_workdir);
 }
 
 std::string StatusEntry::oldPath() const
@@ -224,22 +168,16 @@ _Class(other.data())
 {
 }
 
-StatusList::~StatusList()
-{
-}
-
-size_t StatusList::entryCount()
+size_t StatusList::entryCount() const
 {
     return git_status_list_entrycount(data());
 }
 
-const StatusEntry StatusList::entryByIndex(size_t idx)
+StatusEntry StatusList::entryByIndex(size_t idx)const
 {
     return StatusEntry(git_status_byindex(data(), idx));
 }
 
-
-#endif // libgit_v0_19_0
 
 
 } // namespace git2

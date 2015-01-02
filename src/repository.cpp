@@ -483,15 +483,74 @@ void Repository::removeMessage()
 	Exception::git2_assert(git_repository_message_remove(data()));
 }
 
-// TODO only available from v0.19.0
-/*StatusList Repository::status(const StatusOptions *options) const
+bool Repository::statusForeach(StatusCallbackFunction callback)
 {
-    const git_status_options opt = options->constData();
-    git_status_list *statusList;
-    Exception::git2_assert(git_status_list_new(&statusList, data(), &opt));
-    return StatusList(statusList);
-}*/
+	auto status_cb = [](const char *path, unsigned int status_flags, void *payload)->int
+	{
+		StatusCallbackFunction* callback = (StatusCallbackFunction*)payload;
+		if(callback!=nullptr)
+			return (*callback)(path, Status(status_flags)) ? 0 : GIT_EUSER;
+		else
+			return 0;
+	};
+	
+	int res = git_status_foreach(data(), status_cb, (void*)&callback);
+	if(res==GIT_OK)
+		return true;
+	else if (res==GIT_EUSER)
+		return false;
+	else
+		Exception::git2_assert(res);
+}
 
+bool Repository::statusForeach(StatusCallbackFunction callback, git_status_show_t show, unsigned int flags, const std::vector<std::string>& pathspec)
+{
+	auto status_cb = [](const char *path, unsigned int status_flags, void *payload)->int
+	{
+		StatusCallbackFunction* callback = (StatusCallbackFunction*)payload;
+		if(callback!=nullptr)
+			return (*callback)(path, Status(status_flags)) ? 0 : GIT_EUSER;
+		else
+			return 0;
+	};
+	
+	git_status_options opts = 
+	{
+		GIT_STATUS_OPTIONS_VERSION,
+		show, flags,
+		{}
+	};
+	helper::StrArrayFiller<std::vector<std::string>> filler(&opts.pathspec, pathspec);
+	
+	int res = git_status_foreach_ext(data(), &opts, status_cb, (void*)&callback);
+	if(res==GIT_OK)
+		return true;
+	else if (res==GIT_EUSER)
+		return false;
+	else
+		Exception::git2_assert(res);
+}
+
+Status Repository::status(const std::string& path)
+{
+	unsigned int status_flags;
+	Exception::git2_assert(git_status_file(&status_flags, data(), path.c_str()));
+	return Status(status_flags);
+}
+
+StatusList Repository::listStatus(git_status_show_t show, unsigned int flags, const std::vector<std::string>& pathspec)
+{
+	git_status_options opts = 
+	{
+		GIT_STATUS_OPTIONS_VERSION,
+		show, flags,
+		{}
+	};
+	helper::StrArrayFiller<std::vector<std::string>> filler(&opts.pathspec, pathspec);
+	git_status_list *out;
+	Exception::git2_assert(git_status_list_new(&out, data(), &opts));
+	return StatusList(out);
+}
 
 Remote* Repository::createRemote(const std::string& name, const std::string& url)
 {

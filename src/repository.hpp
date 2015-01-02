@@ -31,6 +31,7 @@
 #include "common.hpp"
 
 #include "diff.hpp"
+#include "status.hpp"
 
 namespace git2
 {
@@ -666,18 +667,49 @@ public:
 	void removeMessage();
 
 /** @} */
-	
-    /**
-     * @brief Get the status information of the Git repository
-     *
-     * This function returns the status of the repository entries, according to
-     * the given options.
-     *
-     * @throws Exception
-     * @return The list of status entries
-     */
-// TODO only available from v0.19.0
-//    StatusList status(const StatusOptions *options) const;
+
+/**
+ * @name Status
+ * @{
+ */
+ 
+	/**
+	 * Gather file statuses and run a callback for each one. 
+	 * The callback is passed the path of the file, the status (a combination of
+	 * the `git_status_t` values above).
+	 *
+	 * If the callback returns false, this function will stop looping and return false.
+	 * 
+	 * @param show `git_status_show_t` constants that
+	 * control which files to scan and in what order.
+	 * @param flags OR'ed combination of the `git_status_opt_t`
+	 * @param pathspec is an array of path patterns to match (using
+	 * fnmatch-style matching), or just an array of paths to match exactly if
+	 * `GIT_STATUS_OPT_DISABLE_PATHSPEC_MATCH` is specified in the flags.
+	 */
+	bool statusForeach(StatusCallbackFunction callback);
+	bool statusForeach(StatusCallbackFunction callback, git_status_show_t show, unsigned int flags, const std::vector<std::string>& pathspec);
+
+	/**
+	 * Get file status for a single file.
+	 * 
+	 * @param path The file to retrieve status for, rooted at the repo's workdir
+	 */
+	Status status(const std::string& path);
+
+	/**
+	 * Gather file status information and populate a list.
+	 * 
+	 * @param show `git_status_show_t` constants that
+	 * control which files to scan and in what order.
+	 * @param flags OR'ed combination of the `git_status_opt_t`
+	 * @param pathspec is an array of path patterns to match (using
+	 * fnmatch-style matching), or just an array of paths to match exactly if
+	 * `GIT_STATUS_OPT_DISABLE_PATHSPEC_MATCH` is specified in the flags.
+	 */
+	StatusList listStatus(git_status_show_t show, unsigned int flags, const std::vector<std::string>& pathspec);
+
+/** @} */
 
 /**
  * @name Remotes

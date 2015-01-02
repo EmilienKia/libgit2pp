@@ -27,10 +27,11 @@
 
 #include "common.hpp"
 
+#include "diff.hpp"
+
 namespace git2
 {
 
-#ifdef libgit_v0_18_0
 
 /**
  * You will find a complete description of libgit status values in git2/status.h
@@ -41,7 +42,7 @@ namespace git2
 class Status
 {
 public:
-    Status(const git_status_t status_flags);
+    Status(unsigned int status_flags);
 
     Status(const Status& status);
 
@@ -105,76 +106,10 @@ public:
     unsigned int data() const;
 
 private:
-    git_status_t _status;
+    unsigned int _status;
 };
 
-#endif // libgit_v0_18_0
-
-
-/**
- * You will find a complete description of status flags and options in git2/status.h
- * in the libgit2 code tree. This object avoid the coder to use the libgit2 defines to
- * get and set states and show modes.
- */
-class StatusOptions
-{
-public:
-
-    enum ShowFlag {
-        ShowIndexAndWorkdir = GIT_STATUS_SHOW_INDEX_AND_WORKDIR,
-        ShowOnlyIndex = GIT_STATUS_SHOW_INDEX_ONLY,
-        ShowOnlyWorkdir = GIT_STATUS_SHOW_WORKDIR_ONLY
-    };
-
-	typedef unsigned int ShowFlags; //!< Combination of ShowFlag
-
-    enum StatusFlag {
-        IncludeUntracked = GIT_STATUS_OPT_INCLUDE_UNTRACKED,
-        IncludeIgnored = GIT_STATUS_OPT_INCLUDE_IGNORED,
-        IncludeUnmodified = GIT_STATUS_OPT_INCLUDE_UNMODIFIED,
-        RecurseUntrackedDirs = GIT_STATUS_OPT_RECURSE_UNTRACKED_DIRS,
-
-// TODO defined in v0.18.0
-//        ExcludeSubmodules = GIT_STATUS_OPT_EXCLUDE_SUBMODULES,
-//        DisablePathspecMatch = GIT_STATUS_OPT_DISABLE_PATHSPEC_MATCH,
-//        RecurseIgnoredDirs = GIT_STATUS_OPT_RECURSE_IGNORED_DIRS,
-
-// TODO defined in v0.19.0
-//        RenamesHeadToIndex = GIT_STATUS_OPT_RENAMES_HEAD_TO_INDEX,
-//        RenamesIdexToWorkdir = GIT_STATUS_OPT_RENAMES_INDEX_TO_WORKDIR,
-//        SortCaseSensitively = GIT_STATUS_OPT_SORT_CASE_SENSITIVELY,
-//        SortCaseInsensitively = GIT_STATUS_OPT_SORT_CASE_INSENSITIVELY
-    };
-
-	typedef unsigned int StatusFlags; //!< Combination of StatusFlag
-
-    StatusOptions();
-
-    StatusOptions(git_status_options statusOptions);
-
-    StatusOptions(const StatusOptions& statusOptions);
-
-    ~StatusOptions();
-
-    ShowFlags showFlags() const;
-
-    void setShowFlags(StatusOptions::ShowFlags sf);
-
-    StatusFlags statusFlags() const;
-
-    void setStatusFlags(StatusOptions::StatusFlags sf);
-
-    git_status_options data() const;
-    const git_status_options constData() const;
-
-private:
-    git_status_options _statusOptions;
-
-    ShowFlags _showFlags;
-    StatusFlags _statusFlags;
-};
-
-#ifdef libgit_v0_19_0
+typedef std::function<bool(const std::string& path, Status status_flags)> StatusCallbackFunction;
 
 /**
  * Represents a status entry in a Git repository, that is a Git status linked to a file name.
@@ -194,6 +129,16 @@ public:
      * Return the status of the entry
      */
     Status status() const;
+
+	/**
+	 * Return the delta between head and index
+	 */
+	DiffDelta headToIndexDelta();
+	
+	/**
+	 * Return the delta between index and workdir
+	 */
+	DiffDelta indexToWorkdirDelta();
 
     /**
      * Returns the old path if set, otherwise an empty string
@@ -226,21 +171,17 @@ public:
 
     StatusList(const StatusList& other);
 
-    ~StatusList();
-
     /**
      * Returns the number of entries in the status list.
      */
-    size_t entryCount();
+    size_t entryCount()const;
 
     /**
      * Returns the entry with the given index.
      */
-    const StatusEntry entryByIndex(size_t idx);
+    StatusEntry entryByIndex(size_t idx)const;
 
 };
-
-#endif // libgit_v0_19_0
 
 
 } // namespace git2
