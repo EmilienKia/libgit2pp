@@ -924,5 +924,155 @@ DiffList Repository::diffTreeToWorkdir(Tree oldTree, uint32_t flags, uint16_t co
 	return DiffList(diff);
 }
 
+void Repository::checkoutHead(unsigned int strategy, bool disableFilters, 
+		unsigned int dirMode, unsigned int fileMode, 
+		int fileOpenFlags, unsigned int notifyFlags,
+		CheckoutNotifyCallbackFunction notifyCb,
+		CheckoutProgressCallbackFunction progressCb,
+		const std::vector<std::string>& paths,
+		const Tree& baseline,
+		const std::string& targetDirectory
+		)
+{
+	auto notify_cb = [](git_checkout_notify_t why, const char *path,
+		const git_diff_file *baseline, const git_diff_file *target,
+		const git_diff_file *workdir, void *payload)->int
+	{
+		CheckoutNotifyCallbackFunction* cb = (CheckoutNotifyCallbackFunction*)payload;
+		if(cb!=nullptr)
+			return (*cb)(why, path, DiffFile(baseline), DiffFile(target), DiffFile(workdir)) ? 0 : GIT_EUSER;
+		else
+			return 0;
+	};
+	
+	auto progress_cb = [](const char *path, size_t completed_steps, size_t total_steps, void *payload)
+	{
+		CheckoutProgressCallbackFunction* cb = (CheckoutProgressCallbackFunction*)payload;
+		if(cb!=nullptr)
+			(*cb)(path, completed_steps, total_steps);
+	};
+	
+	git_checkout_opts opts = {
+		GIT_CHECKOUT_OPTS_VERSION,
+		strategy,
+		disableFilters ? 1 :  0,
+		dirMode,
+		fileMode,
+		fileOpenFlags,
+		notifyFlags,
+		notify_cb,
+		(void*)&notifyCb,
+		progress_cb,
+		(void*)&progressCb,
+		{},
+		baseline.ok() ? baseline.data() : nullptr,
+		targetDirectory.c_str()
+	};
+	helper::StrArrayFiller<std::vector<std::string>> filler(&opts.paths, paths);
+	
+	Exception::git2_assert(git_checkout_head(data(), &opts));	
+}
+
+void Repository::checkoutIndex(Index index,
+		unsigned int strategy, bool disableFilters, 
+		unsigned int dirMode, unsigned int fileMode, 
+		int fileOpenFlags, unsigned int notifyFlags,
+		CheckoutNotifyCallbackFunction notifyCb,
+		CheckoutProgressCallbackFunction progressCb,
+		const std::vector<std::string>& paths,
+		const Tree& baseline,
+		const std::string& targetDirectory
+		)
+{
+	auto notify_cb = [](git_checkout_notify_t why, const char *path,
+		const git_diff_file *baseline, const git_diff_file *target,
+		const git_diff_file *workdir, void *payload)->int
+	{
+		CheckoutNotifyCallbackFunction* cb = (CheckoutNotifyCallbackFunction*)payload;
+		if(cb!=nullptr)
+			return (*cb)(why, path, DiffFile(baseline), DiffFile(target), DiffFile(workdir)) ? 0 : GIT_EUSER;
+		else
+			return 0;
+	};
+	
+	auto progress_cb = [](const char *path, size_t completed_steps, size_t total_steps, void *payload)
+	{
+		CheckoutProgressCallbackFunction* cb = (CheckoutProgressCallbackFunction*)payload;
+		if(cb!=nullptr)
+			(*cb)(path, completed_steps, total_steps);
+	};
+	
+	git_checkout_opts opts = {
+		GIT_CHECKOUT_OPTS_VERSION,
+		strategy,
+		disableFilters ? 1 :  0,
+		dirMode,
+		fileMode,
+		fileOpenFlags,
+		notifyFlags,
+		notify_cb,
+		(void*)&notifyCb,
+		progress_cb,
+		(void*)&progressCb,
+		{},
+		baseline.ok() ? baseline.data() : nullptr,
+		targetDirectory.c_str()
+	};
+	helper::StrArrayFiller<std::vector<std::string>> filler(&opts.paths, paths);
+	
+	Exception::git2_assert(git_checkout_index(data(), index.data(), &opts));	
+}
+
+
+void Repository::checkoutTree(Object treeish,
+		unsigned int strategy, bool disableFilters, 
+		unsigned int dirMode, unsigned int fileMode, 
+		int fileOpenFlags, unsigned int notifyFlags,
+		CheckoutNotifyCallbackFunction notifyCb,
+		CheckoutProgressCallbackFunction progressCb,
+		const std::vector<std::string>& paths,
+		const Tree& baseline,
+		const std::string& targetDirectory
+		)
+{
+	auto notify_cb = [](git_checkout_notify_t why, const char *path,
+		const git_diff_file *baseline, const git_diff_file *target,
+		const git_diff_file *workdir, void *payload)->int
+	{
+		CheckoutNotifyCallbackFunction* cb = (CheckoutNotifyCallbackFunction*)payload;
+		if(cb!=nullptr)
+			return (*cb)(why, path, DiffFile(baseline), DiffFile(target), DiffFile(workdir)) ? 0 : GIT_EUSER;
+		else
+			return 0;
+	};
+	
+	auto progress_cb = [](const char *path, size_t completed_steps, size_t total_steps, void *payload)
+	{
+		CheckoutProgressCallbackFunction* cb = (CheckoutProgressCallbackFunction*)payload;
+		if(cb!=nullptr)
+			(*cb)(path, completed_steps, total_steps);
+	};
+	
+	git_checkout_opts opts = {
+		GIT_CHECKOUT_OPTS_VERSION,
+		strategy,
+		disableFilters ? 1 :  0,
+		dirMode,
+		fileMode,
+		fileOpenFlags,
+		notifyFlags,
+		notify_cb,
+		(void*)&notifyCb,
+		progress_cb,
+		(void*)&progressCb,
+		{},
+		baseline.ok() ? baseline.data() : nullptr,
+		targetDirectory.c_str()
+	};
+	helper::StrArrayFiller<std::vector<std::string>> filler(&opts.paths, paths);
+	
+	Exception::git2_assert(git_checkout_tree(data(), (git_object*)treeish.data(), &opts));	
+}
+
 
 } // namespace git2
