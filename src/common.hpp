@@ -21,11 +21,34 @@
 #define _GIT2PP_COMMON_HPP_
 
 #include <git2.h>
+#include <git2/trace.h>
 
 #include <memory>
 
 namespace git2
 {
+	
+
+/**
+ * @name Traces
+ * @{
+ */
+
+typedef std::function<void(git_trace_level_t level, const std::string& msg)> TraceCallback;
+ 
+/**
+ * Sets the system tracing configuration to the specified level with the
+ * specified callback.  When system events occur at a level equal to, or
+ * lower than, the given level they will be reported to the given callback.
+ * 
+ * @param level Level to set tracing to
+ * @param cb Function to call with trace data
+ */
+void setTraceCallback(git_trace_level_t level, TraceCallback cb);
+ 
+/** @} */
+	
+	
 namespace helper
 {
 

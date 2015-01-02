@@ -20,6 +20,7 @@ lib_LTLIBRARIES =  \
 	libgit2pp.la
 
 libgit2pp_la_SOURCES =  \
+	common.cpp \
 	common.hpp \
 	blob.cpp \
 	blob.hpp \
