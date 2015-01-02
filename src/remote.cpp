@@ -207,6 +207,40 @@ void Remote::stop()
 	git_remote_stop(data());
 }
 
+bool Remote::list(HeadListCallbackFunction callback)
+{
+	auto cb = [](git_remote_head *rhead, void *payload)->int
+	{
+		HeadListCallbackFunction* callback = (HeadListCallbackFunction*)payload;
+		if(payload!=nullptr)
+			return (*callback)(rhead->local!=0, OId(&rhead->oid), OId(&rhead->loid), rhead->name) ? 0 : GIT_EUSER;
+		else
+			return 0;
+	};
+	
+	int res = git_remote_ls(data(), cb, (void*)&callback);
+	if(res==GIT_OK)
+		return true;
+	else if(res==GIT_EUSER)
+		return false;
+	else
+		Exception::git2_assert(res);
+}
+
+void Remote::download(TransfertProgressCallbackFunction callback)
+{
+	auto cb = [](const git_transfer_progress *stats, void *payload)->int
+	{
+		TransfertProgressCallbackFunction* callback = (TransfertProgressCallbackFunction*)payload;
+		if(payload!=nullptr)
+			(*callback)(stats->total_objects, stats->indexed_objects, stats->received_objects, stats->received_bytes);
+		return 0;
+	};
+	
+	int res = git_remote_download(data(), cb, (void*)&callback);
+	Exception::git2_assert(res);
+}
+
 void Remote::UpdateTips()
 {
 	Exception::git2_assert(git_remote_update_tips(data()));
@@ -227,6 +261,11 @@ void Remote::checkCert(bool check)
 	git_remote_check_cert(data(), check?1:0);
 }
 
+const git_transfer_progress * Remote::stats()
+{
+	return git_remote_stats(data());
+}
+
 git_remote_autotag_option_t Remote::autotag()const
 {
 	return git_remote_autotag(data());
@@ -235,6 +274,19 @@ git_remote_autotag_option_t Remote::autotag()const
 void Remote::setAutotags(git_remote_autotag_option_t value)
 {
 	git_remote_set_autotag(data(), value);
+}
+
+void Remote::rename(const std::string& name, RenameProblemCallbackFunction callback)
+{
+	auto cb = [](const char *problematic_refspec, void *payload)->int
+	{
+		RenameProblemCallbackFunction* callback = (RenameProblemCallbackFunction*)payload;
+		if(payload!=nullptr)
+			(*callback)(problematic_refspec);
+		return 0;
+	};
+	int res = git_remote_rename(data(), name.c_str(), cb, (void*)&callback);
+	Exception::git2_assert(res);
 }
 
 int Remote::updateFetchhead()const

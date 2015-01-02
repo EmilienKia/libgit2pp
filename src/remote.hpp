@@ -22,13 +22,22 @@
 
 #include <git2.h>
 
+#include <functional>
 #include <string>
 #include <vector>
+
+#include "oid.hpp"
 
 namespace git2
 {
 
 class Exception;
+
+typedef std::function<bool(bool local, OId oid, OId loid, const std::string& name)> HeadListCallbackFunction;
+
+typedef std::function<void(unsigned int total_objects, unsigned int indexed_objects, unsigned int received_objects, size_t received_bytes)> TransfertProgressCallbackFunction;
+
+typedef std::function<void(const std::string& problematicRefspec)> RenameProblemCallbackFunction;
 
 /**
  * Represents a Git remote refspec.
@@ -107,6 +116,7 @@ public:
 private:
 	const git_refspec *_refspec;
 };
+
 
 /**
  * Represents a Git remote.
@@ -246,10 +256,28 @@ public:
 	 */
 	void stop();
 
-	// TODO Implement git_remote_ls
-	// TODO Implement git_remote_download
-	// TODO Implement git_remote_update_tips
-	
+	/**
+	 * Get a list of refs at the remote
+	 *
+	 * The remote (or more exactly its transport) must be connected. The
+	 * memory belongs to the remote.
+	 *
+	 * If you a return false from the callback, this will stop
+	 * looping over the refs.
+	 */
+	bool list(HeadListCallbackFunction callback);
+
+	/**
+	 * Download the packfile
+	 *
+	 * Negotiate what objects should be downloaded and download the
+	 * packfile with those objects. The packfile is downloaded with a
+	 * temporary filename, as it's final name is not known yet. If there
+	 * was no packfile needed (all the objects were available locally),
+	 * filename will be NULL and the function will return success.
+	 */
+	void download(TransfertProgressCallbackFunction callback);
+
 	/**
 	 * Update the tips to the new state
 	 */
@@ -277,7 +305,11 @@ public:
 	// TODO implement git_remote_set_cred_acquire_cb
 	// TODO implement git_remote_set_transport
 	// TODO implement git_remote_set_callbacks
-	// TODO implement git_remote_stats
+
+	/**
+	 * Get the statistics structure that is filled in by the fetch operation.
+	 */
+	const git_transfer_progress * stats();
 	
 	/**
 	 * Retrieve the tag auto-follow setting
@@ -289,7 +321,17 @@ public:
 	 */
 	void setAutotags(git_remote_autotag_option_t value);
 	
-	// TODO implement git_remote_rename
+	/**
+	 * Give the remote a new name
+	 *
+	 * All remote-tracking branches and configuration settings
+	 * for the remote are updated.
+	 *
+	 * The new name will be checked for validity.
+	 *
+	 * A temporary in-memory remote cannot be given a name with this method.
+	 */
+	void rename(const std::string& name, RenameProblemCallbackFunction callback);
 	
 	/**
 	 * Retrieve the update FETCH_HEAD setting.
