@@ -37,17 +37,19 @@ class Git2PtrWrapper
 {
 public:
 	typedef Git2PtrWrapper<_Type,_Deleter> _Class;
+	typedef std::shared_ptr<_Type> _PtrType;
 
 	Git2PtrWrapper(){}
 	Git2PtrWrapper(_Type* ptr):_ptr(ptr, _Deleter){} // Todo protect deleter from null pointer
 	Git2PtrWrapper(const _Class& other):_ptr(other._ptr){}
+	~Git2PtrWrapper(){}
 
 	bool ok()const{return _ptr.get()!=nullptr;}
 	_Type* data() const {return _ptr.get();}
+	_PtrType& ptr() const {return _ptr;}
 
 private:
-    typedef std::shared_ptr<_Type> ptr_type;
-    ptr_type _ptr;
+    _PtrType _ptr;
 };
 
 /**

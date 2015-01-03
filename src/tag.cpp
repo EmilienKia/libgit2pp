@@ -34,7 +34,7 @@ Object(reinterpret_cast<git_object*>(tag))
 }
 
 Tag::Tag(const Object& object):
-Object(object.data())
+Object(object)
 {
 }
 
@@ -60,9 +60,9 @@ OId Tag::targetOid() const
 	 return OId(git_tag_target_id(data()));
 }
 
-Object::Type Tag::targetType() const
+git_otype Tag::targetType() const
 {
-	return (Object::Type) git_tag_target_type(data());
+	return git_tag_target_type(data());
 }
 
 std::string Tag::name() const
@@ -87,17 +87,10 @@ Object Tag::peel()
 	return Object(obj);
 }
 
-git_tag* Tag::data() const
+git_tag* Tag::data()const
 {
-    return reinterpret_cast<git_tag*>(Object::data());
+	return reinterpret_cast<git_tag*>(Object::data());
 }
-
-const git_tag* Tag::constData() const
-{
-    return reinterpret_cast<git_tag*>(Object::data());
-}
-
-
 
 } // namespace git2
 

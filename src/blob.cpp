@@ -29,7 +29,7 @@ Object(reinterpret_cast<git_object*>(blob))
 }
 
 Blob::Blob(const Object& object):
-Object(object.data())
+Object(object)
 {
 }
 
@@ -59,9 +59,9 @@ int64_t Blob::rawSize() const
     return git_blob_rawsize(data());
 }
 
-git_blob* Blob::data() const
+git_blob* Blob::data()const
 {
-    return reinterpret_cast<git_blob*>(Object::data());
+	return reinterpret_cast<git_blob*>(Object::data());
 }
 
 } // namespace git2

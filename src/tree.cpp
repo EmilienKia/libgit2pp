@@ -92,7 +92,7 @@ Object(tree)
 }
 
 Tree::Tree(const Object& object):
-Object(object.data())
+Object(object)
 {
 }
 
@@ -108,7 +108,7 @@ size_t Tree::entryCount()
 
 TreeEntry Tree::entryByName(const std::string& fileName) const
 {
-    return TreeEntry(git_tree_entry_byname(const_cast<git_tree*>(constData()), fileName.c_str()));
+    return TreeEntry(git_tree_entry_byname(data(), fileName.c_str()));
 }
 
 TreeEntry Tree::entryByIndex(int idx) const
@@ -116,14 +116,9 @@ TreeEntry Tree::entryByIndex(int idx) const
     return TreeEntry(git_tree_entry_byindex(data(), idx));
 }
 
-git_tree* Tree::data() const
+git_tree* Tree::data()const
 {
-    return reinterpret_cast<git_tree*>(Object::data());
-}
-
-const git_tree* Tree::constData() const
-{
-    return reinterpret_cast<git_tree*>(Object::data());
+	return reinterpret_cast<git_tree*>(Object::data());
 }
 
 } // namespace git2

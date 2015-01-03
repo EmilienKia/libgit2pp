@@ -115,7 +115,7 @@ public:
 	/**
 	 * Return the type of an ODB object.
 	 */
-	Object::Type type();
+	git_otype type();
 
 };
 
@@ -239,7 +239,7 @@ public:
 	 * @param len size of the data
 	 * @param type type of the data to hash
 	 */
-	static OId hash(const void* data, size_t len, Object::Type type);
+	static OId hash(const void* data, size_t len, git_otype type);
 
 	/**
 	 * Read a file from disk and fill a git_oid with the object id that
@@ -252,7 +252,7 @@ public:
 	 * @param path file to read and determine object id for
 	 * @param type the type of the object that will be hashed
 	 */
-	static OId hashFile(const std::string& path, Object::Type type);
+	static OId hashFile(const std::string& path, git_otype type);
 	
 	
 
@@ -289,7 +289,7 @@ public:
 	 * @param type type of the data to store
 	 * @return OID of writen object
 	 */
-	OId write(const void* data, size_t len, Object::Type type);
+	OId write(const void* data, size_t len, git_otype type);
 
     git_odb* data() const;
 private:

@@ -21,10 +21,13 @@
 
 #include "blob.hpp"
 #include "commit.hpp"
+#include "exception.hpp"
 #include "oid.hpp"
 #include "repository.hpp"
 #include "tag.hpp"
 #include "tree.hpp"
+
+#include <iostream>
 
 namespace git2
 {
@@ -33,21 +36,22 @@ namespace git2
 //
 // Object
 //
-
 Object::Object(git_object *object):
 _Class(object)
 {
 }
 
 Object::Object(const Object& other):
-_Class(other.data())
+_Class(other)
 {
 }
 
 Commit Object::toCommit() const
 {
 	if(isCommit())
+	{
 		return Commit(*this);
+	}
 	else
 		return Commit();
 }
@@ -86,14 +90,14 @@ OId Object::oid() const
     return OId(git_object_id(data()));
 }
 
-bool Object::checkType(Type type) const
+bool Object::checkType(git_otype type) const
 {
-	return git_object_type(data()) == (git_otype)type;
+	return git_object_type(data()) == type;
 }
 
-Object::Type Object::getType() const
+git_otype Object::getType() const
 {
-	return (Object::Type) git_object_type(data());
+	return git_object_type(data());
 }
 
 std::string Object::getTypeString() const
@@ -101,21 +105,20 @@ std::string Object::getTypeString() const
 	return std::string(git_object_type2string(git_object_type(data())));
 }
 
-std::string Object::type2String(Object::Type type)
+std::string Object::type2String(git_otype type)
 {
-	return std::string(git_object_type2string((git_otype)type));
+	return std::string(git_object_type2string(type));
 }
 
-Object::Type Object::type2String(std::string str)
+git_otype Object::type2String(std::string str)
 {
-	return (Object::Type)git_object_string2type(str.c_str());
+	return git_object_string2type(str.c_str());
 }
 
-bool Object::isLooseType(Object::Type type)
+bool Object::isLooseType(git_otype type)
 {
-	return git_object_typeisloose((git_otype)type) != 0;
+	return git_object_typeisloose(type) != 0;
 }
-
 
 bool Object::isCommit() const
 {

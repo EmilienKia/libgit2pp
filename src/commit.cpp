@@ -129,9 +129,9 @@ Commit Commit::getNthGenAncestor(unsigned n) const
     return Commit(ancestor);
 }
 
-git_commit* Commit::data() const
+git_commit* Commit::data()const
 {
-    return reinterpret_cast<git_commit*>(Object::data());
+	return reinterpret_cast<git_commit*>(Object::data());
 }
 
 } // namespace git2

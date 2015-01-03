@@ -28,7 +28,6 @@ namespace git2
 {
 
 class Object;
-typename Object::Type;
 class OId;
 class Signature;
 
@@ -43,7 +42,7 @@ public:
      * this Tag, and must not be passed to another Tag or closed outside this
      * object.
      */
-    explicit Tag(git_tag *tag = 0);
+    explicit Tag(git_tag *tag = NULL);
 
     /**
      * Casting from Object constructor.
@@ -86,7 +85,7 @@ public:
 	/**
 	 * Get the name of a tag
 	 */
-	Object::Type targetType() const;
+	git_otype targetType() const;
 	
     /**
      * Get the tagger (author) of a tag
@@ -106,7 +105,6 @@ public:
 	Object peel();
 
     git_tag* data() const;
-    const git_tag* constData() const;
 };
 
 } // namespace git2

@@ -92,7 +92,7 @@ public:
      * this Tree, and must not be passed to another Tree or closed outside this
      * object.
      */
-    explicit Tree(git_tree *tree = 0);
+    explicit Tree(git_tree *tree = NULL);
 
     /**
      * Casting from Object constructor.
@@ -132,7 +132,6 @@ public:
     TreeEntry entryByIndex(int idx) const;
 
     git_tree* data() const;
-    const git_tree* constData() const;
 };
 
 } // namespace git2

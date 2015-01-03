@@ -22,6 +22,7 @@
 
 #include <git2.h>
 
+#include "common.hpp"
 #include "object.hpp"
 
 namespace git2
@@ -47,7 +48,7 @@ public:
      * this Commit, and must not be passed to another Commit or closed outside this
      * object.
      */
-    explicit Commit(git_commit *commit = 0);
+    Commit(git_commit *commit = NULL);
 
     /**
      * Casting from Object constructor.
@@ -169,8 +170,8 @@ public:
      * the named commit object, following only the first parents.
      */
     Commit getNthGenAncestor(unsigned n) const;
-    
-    git_commit* data() const;
+
+	git_commit* data() const;
 };
 
 

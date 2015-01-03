@@ -105,9 +105,9 @@ OId DatabaseObject::oid()
 	return OId(git_odb_object_id(data()));
 }
 
-Object::Type DatabaseObject::type()
+git_otype DatabaseObject::type()
 {
-	return (Object::Type)git_odb_object_type(data());
+	return git_odb_object_type(data());
 }
 
 //
@@ -184,17 +184,17 @@ DatabaseBackend Database::getBackend(size_t pos)
 	return DatabaseBackend(dbb);
 }
 
-OId Database::hash(const void* data, size_t len, Object::Type type)
+OId Database::hash(const void* data, size_t len, git_otype type)
 {
 	git_oid oid;
-	Exception::git2_assert( git_odb_hash(&oid, data, len, (git_otype)type) );
+	Exception::git2_assert( git_odb_hash(&oid, data, len, type) );
 	return OId(&oid);
 }
 
-OId Database::hashFile(const std::string& path, Object::Type type)
+OId Database::hashFile(const std::string& path, git_otype type)
 {
 	git_oid oid;
-	Exception::git2_assert( git_odb_hashfile(&oid, path.c_str(), (git_otype)type) );
+	Exception::git2_assert( git_odb_hashfile(&oid, path.c_str(), type) );
 	return OId(&oid);
 }
 
@@ -205,10 +205,10 @@ DatabaseObject Database::read(OId oid)
 	return DatabaseObject(obj);
 }
 
-OId Database::write(const void* data, size_t len, Object::Type type)
+OId Database::write(const void* data, size_t len, git_otype type)
 {
 	git_oid oid;
-	Exception::git2_assert( git_odb_write(&oid, this->data(), data, len, (git_otype)type) );
+	Exception::git2_assert( git_odb_write(&oid, this->data(), data, len, type) );
 	return OId(&oid);
 }
 
