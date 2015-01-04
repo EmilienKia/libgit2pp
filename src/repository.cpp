@@ -288,7 +288,7 @@ OId Repository::createCommit(const std::string& ref,
 		p.push_back(parent.data());
 
     OId oid;
-    Exception::git2_assert(git_commit_create(oid.data(), data(), ref.c_str(), author.constData(), committer.constData(), NULL, message.c_str(), tree.data(), p.size(), p.data()));
+    Exception::git2_assert(git_commit_create(oid.data(), data(), ref.c_str(), author.data(), committer.data(), NULL, message.c_str(), tree.data(), p.size(), p.data()));
     return oid;
 }
 
@@ -305,7 +305,7 @@ OId Repository::createCommit(const std::string& ref,
 		p.push_back(parent.data());
 
     OId oid;
-    Exception::git2_assert(git_commit_create(oid.data(), data(), ref.c_str(), author.constData(), committer.constData(), messageEncoding.c_str(), message.c_str(), tree.data(), p.size(), p.data()));
+    Exception::git2_assert(git_commit_create(oid.data(), data(), ref.c_str(), author.data(), committer.data(), messageEncoding.c_str(), message.c_str(), tree.data(), p.size(), p.data()));
     return oid;
 }
 
@@ -334,7 +334,7 @@ OId Repository::createTag(const std::string& name,
 {
     OId oid;
     Exception::git2_assert(git_tag_create(oid.data(), data(), name.c_str(), target.data(),
-                             tagger.constData(), message.c_str(), overwrite));
+                             tagger.data(), message.c_str(), overwrite));
     return oid;
 }
 
@@ -1067,8 +1067,57 @@ void Repository::checkoutTree(Object treeish,
 	};
 	helper::StrArrayFiller<std::vector<std::string>> filler(&opts.paths, paths);
 	
-	Exception::git2_assert(git_checkout_tree(data(), (git_object*)treeish.data(), &opts));	
+	Exception::git2_assert(git_checkout_tree(data(), (git_object*)treeish.data(), &opts));
 }
 
+OId Repository::stashSave(Signature stasher, const std::string& message, unsigned int flags)
+{
+	git_oid out;
+	
+	int res = git_stash_save(&out, data(), const_cast<git_signature*>(stasher.data()), message.empty()?NULL:message.data(), flags);
+	if(res==GIT_OK)
+	{
+		return OId(&out);
+	}
+	else if(res==GIT_ENOTFOUND)
+	{
+		return OId();
+	}
+	else
+	{
+		Exception::git2_assert(res);
+	}
+}
+
+bool Repository::stashForeach(StashCallbackFunction callback)
+{
+	auto foreach_cb = [](size_t index, const char* message, const git_oid *stash_id, void *payload)->int
+	{
+		StashCallbackFunction* cb = (StashCallbackFunction*)payload;
+		if(cb!=nullptr)
+			return (*cb)(index, message, OId(stash_id)) ? GIT_OK : GIT_EUSER;
+		else
+			return GIT_OK;
+	};
+	
+	int res = git_stash_foreach(data(), foreach_cb, &callback);
+	if(res==GIT_OK)
+	{
+		return true;
+	}
+	else if(res==GIT_EUSER)
+	{
+		return false;
+	}
+	else
+	{
+		Exception::git2_assert(res);
+	}
+}
+
+void Repository::stashDrop(size_t index)
+{
+	Exception::git2_assert(git_stash_drop(data(), index));
+}
 
 } // namespace git2

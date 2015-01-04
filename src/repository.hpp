@@ -63,6 +63,7 @@ typedef std::function<bool(git_checkout_notify_t why, const std::string& path, c
 
 typedef std::function<void(const char *path, size_t completedSteps, size_t totalSteps)> CheckoutProgressCallbackFunction;
 
+typedef std::function<bool(size_t index, const std::string& message, OId stashId)> StashCallbackFunction;
 
 /**
  * Represents a Git repository.
@@ -1217,6 +1218,37 @@ public:
 		const Tree& baseline = Tree(),
 		const std::string& targetDirectory = std::string()
 		);
+
+/** @} */
+
+/**
+ * @name Stash
+ * @{
+ */
+ 
+	/**
+	* Save the local modifications to a new stash.
+	* 
+	* @param stasher The identity of the person performing the stashing.
+	* @param message Optional description along with the stashed state.
+	* @param flags Flags to control the stashing process. (see GIT_STASH_*)
+	* @return Object id of the commit containing the stashed state.
+	* This commit is also the target of the direct reference refs/stash.
+	* Null OID if nothing to stash.
+	*/
+	OId stashSave(Signature stasher, const std::string& message = "", unsigned int flags = GIT_STASH_DEFAULT);
+
+	/**
+	 * Loop over all the stashed states and issue a callback for each one.
+	 *
+	 * If the callback returns a false value, this will stop looping.
+	 */
+	bool stashForeach(StashCallbackFunction callback);
+
+	/**
+	 * Remove a single stashed state from the stash list.
+	 */
+	void stashDrop(size_t index);
 
 /** @} */
 

@@ -210,7 +210,7 @@ RefLog::~RefLog()
 
 void RefLog::append(const OId& id, const Signature& commiter, const std::string& msg)
 {
-	Exception::git2_assert(git_reflog_append(data(), id.constData(), commiter.constData(), msg.empty()?NULL:msg.c_str()));
+	Exception::git2_assert(git_reflog_append(data(), id.constData(), commiter.data(), msg.empty()?NULL:msg.c_str()));
 }
 
 void RefLog::drop(size_t idx, bool rewrite)

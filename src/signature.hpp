@@ -157,7 +157,7 @@ public:
      */
     int when_offset() const;
 
-    const git_signature *constData() const;
+    const git_signature *data() const;
 
 private:
     const git_signature *_sign;
