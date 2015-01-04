@@ -70,16 +70,11 @@ typedef std::function<void(const char *path, size_t completedSteps, size_t total
 class Repository : public helper::Git2PtrWrapper<git_repository, git_repository_free>
 {
 public:
-
     /**
-     * Construct a wrapper around a libgit2 repository pointer.
-     *
-     * If `own` is true, this Repository takes ownership of the pointer, and makes
-     * sure it is freed when the owner is deleted, unless there are other instances
-     * sharing the ownership. If `own` is true, the pointer must not be freed manually,
-     * and must not be passed to another Repository instance also with `own` true.
+     * Default constructor.
+     * The created repository is not usable.
      */
-    Repository(git_repository *repository = NULL/*, bool own = false*/);
+    Repository();
 
     /**
      * Copy constructor; creates a copy of the object, sharing the same underlaying data
@@ -87,10 +82,10 @@ public:
      */
     Repository(const Repository& repo);
 
-    /**
-     * Destruct a previously allocated repository
-     */
-    ~Repository();
+/**
+ * @name Creation
+ * @{
+ */
 
     /**
      * Look for a git repository and return its path. The lookup start from startPath and
@@ -133,7 +128,7 @@ public:
      *
      * @throws Exception
      */
-    void init(const std::string& path, bool isBare);
+    static Repository init(const std::string& path, bool isBare);
 
 	/**
 	 * Create a new Git repository in the given folder with extended controls.
@@ -166,7 +161,7 @@ public:
 	 *        repository initialization is completed, an "origin" remote
 	 *        will be added pointing to this URL.
 	 */
-	void init(const std::string& path,
+	static Repository init(const std::string& path,
 		uint32_t    flags,
 		uint32_t    mode,
 		const std::string& workdirPath,
@@ -198,7 +193,7 @@ public:
      * @param path the path to the repository
      * @throws Exception
      */
-    void open(const std::string& path);
+    static Repository open(const std::string& path);
 
 	// TODO Implement git_repository_wrap_odb
 
@@ -209,7 +204,7 @@ public:
      *
      * @throws Exception
      */
-    void discoverAndOpen(const std::string &startPath,
+    static Repository discoverAndOpen(const std::string &startPath,
                          bool acrossFs = false,
                          const std::list<std::string> &ceilingDirs = std::list<std::string>());
 
@@ -224,7 +219,9 @@ public:
 	 * 
 	 * @param path Direct path to the bare repository
 	 */
-	void openBare(const std::string& path);
+	static Repository openBare(const std::string& path);
+
+/** @} */
 
     /**
      * Retrieve and resolve the reference pointed at by HEAD.
@@ -1223,6 +1220,11 @@ public:
 
 /** @} */
 
+protected:
+    /**
+     * Construct a wrapper around a libgit2 repository pointer.
+     */
+    Repository(git_repository *repository);
 };
 
 } // namespace git2

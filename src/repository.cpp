@@ -50,21 +50,17 @@ namespace git2
 // Repository
 //
 
-Repository::Repository(git_repository *repository/*, bool own*/):
+Repository::Repository()
+{
+}
+
+Repository::Repository(git_repository *repository):
 _Class(repository)
 {
-/*	if(own)
-		_repo = ptr_type(repository,  GitRepositoryDeleter());
-	else
-		_repo = ptr_type(repository, GitRepositoryNoDeleter());*/
 }
 
 Repository::Repository( const Repository& other):
-_Class(other.data())
-{
-}
-
-Repository::~Repository()
+_Class(other)
 {
 }
 
@@ -88,14 +84,14 @@ std::string Repository::discover(const std::string& startPath, bool acrossFs, co
     return std::string(repoPath.data());
 }
 
-void Repository::init(const std::string& path, bool isBare)
+Repository Repository::init(const std::string& path, bool isBare)
 {
     git_repository *repo = NULL;
     Exception::git2_assert(git_repository_init(&repo, path.c_str(), isBare));
-    *this = Repository(repo);
+    return Repository(repo);
 }
 
-void Repository::init(const std::string& path,
+Repository Repository::init(const std::string& path,
 	uint32_t    flags,
 	uint32_t    mode,
 	const std::string& workdirPath,
@@ -117,29 +113,29 @@ void Repository::init(const std::string& path,
     opts.origin_url    = originUrl.empty() ? NULL : originUrl.c_str();
     
     Exception::git2_assert(git_repository_init_ext(&repo, path.c_str(), &opts));
-    *this = Repository(repo);
+    return Repository(repo);
 }
 
 
-void Repository::open(const std::string& path)
+Repository Repository::open(const std::string& path)
 {
     git_repository *repo = NULL;
     Exception::git2_assert(git_repository_open(&repo, path.c_str()));
-    *this = Repository(repo);
+    return Repository(repo);
 }
 
-void Repository::discoverAndOpen(const std::string &startPath,
+Repository Repository::discoverAndOpen(const std::string &startPath,
                                      bool acrossFs,
                                      const std::list<std::string> &ceilingDirs)
 {
-    open(discover(startPath, acrossFs, ceilingDirs));
+    return open(discover(startPath, acrossFs, ceilingDirs));
 }
 
-void Repository::openBare(const std::string& path)
+Repository Repository::openBare(const std::string& path)
 {
     git_repository *repo = NULL;
     Exception::git2_assert(git_repository_open_bare(&repo, path.c_str()));
-    *this = Repository(repo);
+    return Repository(repo);
 }
 
 Reference Repository::head() const

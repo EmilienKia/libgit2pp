@@ -145,13 +145,6 @@ public:
     int write();
 
     /**
-     * Get the repository where a reference resides
-     *
-     * @return a pointer to the repository
-     */
-    Repository owner() const;
-
-    /**
      * Set the name of a reference.
      *
      * This marks the reference as modified; changes

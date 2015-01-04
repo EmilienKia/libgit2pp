@@ -93,11 +93,6 @@ Reference Reference::resolve() const
     return Reference(ref);
 }
 
-Repository Reference::owner() const
-{
-    return Repository(git_reference_owner(data()));
-}
-
 Reference Reference::setSymbolicTarget(const std::string& target)
 {
 	git_reference *out;
