@@ -1127,97 +1127,66 @@ public:
  */
 
 	/**
+	 * Checkout option structure.
+	 */
+	struct CheckoutOptions {
+		/** Checkout strategy. See git_checkout_strategy_t, default to GIT_CHECKOUT_NONE. */
+		unsigned int strategy = GIT_CHECKOUT_NONE;
+		/** Don't apply filters like CRLF conversion. Default to false. */
+		bool disableFilters = false;
+		/** Directory mode. Default is 0755. */
+		unsigned int dirMode = 0;
+		/** File mode. Default is 0644 or 0755 as dictated by blob. */
+		unsigned int fileMode = 0;
+		/** File open mode. Default is O_CREAT | O_TRUNC | O_WRONLY. */
+		int fileOpenFlags = 0;
+		/** Notification enabling flags. see `git_checkout_notify_t`. */
+		unsigned int notifyFlags = 0;
+		/** Notification callback. */
+		CheckoutNotifyCallbackFunction notifyCb = CheckoutNotifyCallbackFunction();
+		/** Checkout progress callback. */
+		CheckoutProgressCallbackFunction progressCb = CheckoutProgressCallbackFunction();
+		/** When not empty, array of fnmatch patterns specifying which
+		 *  paths should be taken into account, otherwise all files.  Use
+		 *  GIT_CHECKOUT_DISABLE_PATHSPEC_MATCH to treat as simple list.
+		 */
+		const std::vector<std::string>& paths = std::vector<std::string>();
+		/** Expected content of workdir, defaults to HEAD. */
+		const Tree& baseline = Tree();
+		/** Alternative checkout path to workdir. */
+		const std::string& targetDirectory = std::string();
+	};
+
+	/**
 	 * Updates files in the index and the working tree to match the content of
 	 * the commit pointed at by HEAD.
 	 *
 	 * The repository must be non-bare.
 	 * 
-	 * @param strategy See git_checkout_strategy_t, default to GIT_CHECKOUT_NONE
-	 * @param disableFilters Don't apply filters like CRLF conversion
-	 * @param dirMode default is 0755
-	 * @param fileMode default is 0644 or 0755 as dictated by blob
-	 * @param fileOpenFlags default is O_CREAT | O_TRUNC | O_WRONLY
-	 * @param notifyFlags see `git_checkout_notify_t`
-	 * @param notifyCb
-	 * @param progressCb
-	 * @param paths When not empty, array of fnmatch patterns specifying which
-	 *  paths should be taken into account, otherwise all files.  Use
-	 *  GIT_CHECKOUT_DISABLE_PATHSPEC_MATCH to treat as simple list.
-	 * @param baseline expected content of workdir, defaults to HEAD
-	 * @param targetDirectory alternative checkout path to workdir
+	 * @param options Checkout options
 	 */
-	void checkoutHead(unsigned int strategy = GIT_CHECKOUT_NONE, bool disableFilters = false, 
-		unsigned int dirMode = 0, unsigned int fileMode = 0, 
-		int fileOpenFlags = 0 , unsigned int notifyFlags = 0,
-		CheckoutNotifyCallbackFunction notifyCb = CheckoutNotifyCallbackFunction(),
-		CheckoutProgressCallbackFunction progressCb = CheckoutProgressCallbackFunction(),
-		const std::vector<std::string>& paths = std::vector<std::string>(),
-		const Tree& baseline = Tree(),
-		const std::string& targetDirectory = std::string()
-		);
+	void checkoutHead(const CheckoutOptions& options);
 
 	/**
 	 * Updates files in the working tree to match the content of the index.
 	 * 
 	 * The repository must be non-bare.
 	 * 
-	 * @param index index to be checked out, default to use repository index
-	 * @param strategy See git_checkout_strategy_t, default to GIT_CHECKOUT_NONE
-	 * @param disableFilters Don't apply filters like CRLF conversion
-	 * @param dirMode default is 0755
-	 * @param fileMode default is 0644 or 0755 as dictated by blob
-	 * @param fileOpenFlags default is O_CREAT | O_TRUNC | O_WRONLY
-	 * @param notifyFlags see `git_checkout_notify_t`
-	 * @param notifyCb
-	 * @param progressCb
-	 * @param paths When not empty, array of fnmatch patterns specifying which
-	 *  paths should be taken into account, otherwise all files.  Use
-	 *  GIT_CHECKOUT_DISABLE_PATHSPEC_MATCH to treat as simple list.
-	 * @param baseline expected content of workdir, defaults to HEAD
-	 * @param targetDirectory alternative checkout path to workdir
+	 * @param options Checkout options
 	 */
-	void checkoutIndex(Index index = Index(),
-		unsigned int strategy = GIT_CHECKOUT_NONE, bool disableFilters = false, 
-		unsigned int dirMode = 0, unsigned int fileMode = 0, 
-		int fileOpenFlags = 0 , unsigned int notifyFlags = 0,
-		CheckoutNotifyCallbackFunction notifyCb = CheckoutNotifyCallbackFunction(),
-		CheckoutProgressCallbackFunction progressCb = CheckoutProgressCallbackFunction(),
-		const std::vector<std::string>& paths = std::vector<std::string>(),
-		const Tree& baseline = Tree(),
-		const std::string& targetDirectory = std::string()
-		);
+	void checkoutIndex(Index index, const CheckoutOptions& options);
+
 	/**
 	 * Updates files in the index and working tree to match the content of the
 	 * tree pointed at by the treeish. 
 	 * 
 	 * The repository must be non-bare.
 	 * 
+	 * @param options Checkout options
 	 * @param treeish a commit, tag or tree which content will be used to update
 	 * the working directory
-	 * @param strategy See git_checkout_strategy_t, default to GIT_CHECKOUT_NONE
-	 * @param disableFilters Don't apply filters like CRLF conversion
-	 * @param dirMode default is 0755
-	 * @param fileMode default is 0644 or 0755 as dictated by blob
-	 * @param fileOpenFlags default is O_CREAT | O_TRUNC | O_WRONLY
-	 * @param notifyFlags see `git_checkout_notify_t`
-	 * @param notifyCb
-	 * @param progressCb
-	 * @param paths When not empty, array of fnmatch patterns specifying which
-	 *  paths should be taken into account, otherwise all files.  Use
-	 *  GIT_CHECKOUT_DISABLE_PATHSPEC_MATCH to treat as simple list.
-	 * @param baseline expected content of workdir, defaults to HEAD
-	 * @param targetDirectory alternative checkout path to workdir
 	 */
-	void checkoutTree(Object treeish,
-		unsigned int strategy = GIT_CHECKOUT_NONE, bool disableFilters = false, 
-		unsigned int dirMode = 0, unsigned int fileMode = 0, 
-		int fileOpenFlags = 0 , unsigned int notifyFlags = 0,
-		CheckoutNotifyCallbackFunction notifyCb = CheckoutNotifyCallbackFunction(),
-		CheckoutProgressCallbackFunction progressCb = CheckoutProgressCallbackFunction(),
-		const std::vector<std::string>& paths = std::vector<std::string>(),
-		const Tree& baseline = Tree(),
-		const std::string& targetDirectory = std::string()
-		);
+	void checkoutTree(Object treeish, const CheckoutOptions& options);
 
 /** @} */
 

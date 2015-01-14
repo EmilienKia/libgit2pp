@@ -920,15 +920,7 @@ DiffList Repository::diffTreeToWorkdir(Tree oldTree, uint32_t flags, uint16_t co
 	return DiffList(diff);
 }
 
-void Repository::checkoutHead(unsigned int strategy, bool disableFilters, 
-		unsigned int dirMode, unsigned int fileMode, 
-		int fileOpenFlags, unsigned int notifyFlags,
-		CheckoutNotifyCallbackFunction notifyCb,
-		CheckoutProgressCallbackFunction progressCb,
-		const std::vector<std::string>& paths,
-		const Tree& baseline,
-		const std::string& targetDirectory
-		)
+void Repository::checkoutHead(const CheckoutOptions& options)
 {
 	auto notify_cb = [](git_checkout_notify_t why, const char *path,
 		const git_diff_file *baseline, const git_diff_file *target,
@@ -950,35 +942,26 @@ void Repository::checkoutHead(unsigned int strategy, bool disableFilters,
 	
 	git_checkout_opts opts = {
 		GIT_CHECKOUT_OPTS_VERSION,
-		strategy,
-		disableFilters ? 1 :  0,
-		dirMode,
-		fileMode,
-		fileOpenFlags,
-		notifyFlags,
+		options.strategy,
+		options.disableFilters ? 1 :  0,
+		options.dirMode,
+		options.fileMode,
+		options.fileOpenFlags,
+		options.notifyFlags,
 		notify_cb,
-		(void*)&notifyCb,
+		(void*)&options.notifyCb,
 		progress_cb,
-		(void*)&progressCb,
+		(void*)&options.progressCb,
 		{},
-		baseline.ok() ? baseline.data() : nullptr,
-		targetDirectory.c_str()
+		options.baseline.ok() ? options.baseline.data() : nullptr,
+		options.targetDirectory.c_str()
 	};
-	helper::StrArrayFiller<std::vector<std::string>> filler(&opts.paths, paths);
+	helper::StrArrayFiller<std::vector<std::string>> filler(&opts.paths, options.paths);
 	
 	Exception::git2_assert(git_checkout_head(data(), &opts));	
 }
 
-void Repository::checkoutIndex(Index index,
-		unsigned int strategy, bool disableFilters, 
-		unsigned int dirMode, unsigned int fileMode, 
-		int fileOpenFlags, unsigned int notifyFlags,
-		CheckoutNotifyCallbackFunction notifyCb,
-		CheckoutProgressCallbackFunction progressCb,
-		const std::vector<std::string>& paths,
-		const Tree& baseline,
-		const std::string& targetDirectory
-		)
+void Repository::checkoutIndex(Index index, const CheckoutOptions& options)
 {
 	auto notify_cb = [](git_checkout_notify_t why, const char *path,
 		const git_diff_file *baseline, const git_diff_file *target,
@@ -1000,36 +983,26 @@ void Repository::checkoutIndex(Index index,
 	
 	git_checkout_opts opts = {
 		GIT_CHECKOUT_OPTS_VERSION,
-		strategy,
-		disableFilters ? 1 :  0,
-		dirMode,
-		fileMode,
-		fileOpenFlags,
-		notifyFlags,
+		options.strategy,
+		options.disableFilters ? 1 :  0,
+		options.dirMode,
+		options.fileMode,
+		options.fileOpenFlags,
+		options.notifyFlags,
 		notify_cb,
-		(void*)&notifyCb,
+		(void*)&options.notifyCb,
 		progress_cb,
-		(void*)&progressCb,
+		(void*)&options.progressCb,
 		{},
-		baseline.ok() ? baseline.data() : nullptr,
-		targetDirectory.c_str()
+		options.baseline.ok() ? options.baseline.data() : nullptr,
+		options.targetDirectory.c_str()
 	};
-	helper::StrArrayFiller<std::vector<std::string>> filler(&opts.paths, paths);
+	helper::StrArrayFiller<std::vector<std::string>> filler(&opts.paths, options.paths);
 	
-	Exception::git2_assert(git_checkout_index(data(), index.data(), &opts));	
+	Exception::git2_assert(git_checkout_index(data(), index.data(), &opts));
 }
 
-
-void Repository::checkoutTree(Object treeish,
-		unsigned int strategy, bool disableFilters, 
-		unsigned int dirMode, unsigned int fileMode, 
-		int fileOpenFlags, unsigned int notifyFlags,
-		CheckoutNotifyCallbackFunction notifyCb,
-		CheckoutProgressCallbackFunction progressCb,
-		const std::vector<std::string>& paths,
-		const Tree& baseline,
-		const std::string& targetDirectory
-		)
+void Repository::checkoutTree(Object treeish,  const CheckoutOptions& options)
 {
 	auto notify_cb = [](git_checkout_notify_t why, const char *path,
 		const git_diff_file *baseline, const git_diff_file *target,
@@ -1051,21 +1024,21 @@ void Repository::checkoutTree(Object treeish,
 	
 	git_checkout_opts opts = {
 		GIT_CHECKOUT_OPTS_VERSION,
-		strategy,
-		disableFilters ? 1 :  0,
-		dirMode,
-		fileMode,
-		fileOpenFlags,
-		notifyFlags,
+		options.strategy,
+		options.disableFilters ? 1 :  0,
+		options.dirMode,
+		options.fileMode,
+		options.fileOpenFlags,
+		options.notifyFlags,
 		notify_cb,
-		(void*)&notifyCb,
+		(void*)&options.notifyCb,
 		progress_cb,
-		(void*)&progressCb,
+		(void*)&options.progressCb,
 		{},
-		baseline.ok() ? baseline.data() : nullptr,
-		targetDirectory.c_str()
+		options.baseline.ok() ? options.baseline.data() : nullptr,
+		options.targetDirectory.c_str()
 	};
-	helper::StrArrayFiller<std::vector<std::string>> filler(&opts.paths, paths);
+	helper::StrArrayFiller<std::vector<std::string>> filler(&opts.paths, options.paths);
 	
 	Exception::git2_assert(git_checkout_tree(data(), (git_object*)treeish.data(), &opts));
 }
