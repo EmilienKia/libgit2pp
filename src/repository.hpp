@@ -33,6 +33,8 @@
 #include "diff.hpp"
 #include "status.hpp"
 #include "index.hpp"
+#include "remote.hpp"
+#include "transport.hpp"
 #include "tree.hpp"
 
 namespace git2
@@ -71,6 +73,80 @@ typedef std::function<bool(size_t index, const std::string& message, OId stashId
 class Repository : public helper::Git2PtrWrapper<git_repository, git_repository_free>
 {
 public:
+	/**
+	 * Checkout option structure.
+	 */
+	struct CheckoutOptions {
+		/** Checkout strategy. See git_checkout_strategy_t, default to GIT_CHECKOUT_NONE. */
+		unsigned int strategy = GIT_CHECKOUT_NONE;
+		/** Don't apply filters like CRLF conversion. Default to false. */
+		bool disableFilters = false;
+		/** Directory mode. Default is 0755. */
+		unsigned int dirMode = 0;
+		/** File mode. Default is 0644 or 0755 as dictated by blob. */
+		unsigned int fileMode = 0;
+		/** File open mode. Default is O_CREAT | O_TRUNC | O_WRONLY. */
+		int fileOpenFlags = 0;
+		/** Notification enabling flags. see `git_checkout_notify_t`. */
+		unsigned int notifyFlags = 0;
+		/** Notification callback. */
+		CheckoutNotifyCallbackFunction notifyCb = CheckoutNotifyCallbackFunction();
+		/** Checkout progress callback. */
+		CheckoutProgressCallbackFunction progressCb = CheckoutProgressCallbackFunction();
+		/** When not empty, array of fnmatch patterns specifying which
+		 *  paths should be taken into account, otherwise all files.  Use
+		 *  GIT_CHECKOUT_DISABLE_PATHSPEC_MATCH to treat as simple list.
+		 */
+		const std::vector<std::string>& paths = std::vector<std::string>();
+		/** Expected content of workdir, defaults to HEAD. */
+		const Tree& baseline = Tree();
+		/** Alternative checkout path to workdir. */
+		const std::string& targetDirectory = std::string();
+	};
+
+	/**
+	 * Clone option structure.
+	 */
+	struct CloneOptions {
+		/** Options for the checkout step.  To disable checkout,
+		 *   set the `checkout_strategy` to GIT_CHECKOUT_DEFAULT.
+		 */
+		CheckoutOptions checkoutOptions;
+		/** True to create bare repo, false to create a standard repo. */
+		bool bare = false;
+		/** Callback for fetch progress. Be aware that
+		 *  this is called inline with network and indexing operations,
+		 *  so performance may be affected.
+		 */
+		TransfertProgressCallbackFunction fetchProgressCb;
+		
+		/** Name given to the "origin" remote.  The default is "origin". */
+		std::string remoteName = "origin";
+		/** URL to be used for pushing.  Empty means use the fetch url. */
+		std::string pushUrl;
+		/** Fetch specification to be used for fetching.
+		 * Empty results in the same behavior as GIT_REMOTE_DEFAULT_FETCH. */
+		std::string fetchSpec;
+		/** Fetch specification to be used for pushing.
+		 * Empty means use the same spec as for fetching. */
+		std::string pushSpec;
+		
+		/** Callback to be used if credentials are required during the initial fetch. */
+		CredentialsAcquireCallbackFunction credentialAcquireCb;
+		/** Flags used to create transport if no transport is provided. */
+		git_transport_flags_t transportFlags;
+		
+		// TODO git_transport *transport
+		// TODO git_remote_callbacks *remote_callbacks
+		/** Used to specify the autotag setting before the initial fetch.
+		 * The default is GIT_REMOTE_DOWNLOAD_TAGS_ALL.
+		 */
+		git_remote_autotag_option_t remoteAutotag;
+		/** Name of the branch to checkout. Empty means use the remote's HEAD. */
+		std::string checkoutBranch;
+	};
+
+
     /**
      * Default constructor.
      * The created repository is not usable.
@@ -223,6 +299,23 @@ public:
 	static Repository openBare(const std::string& path);
 
 /** @} */
+
+
+
+/**
+ * @name Clone
+ * @{
+ */
+	
+	/**
+	 * Clone a remote repository, and checkout the branch pointed to by the remote
+	 * HEAD.
+	 * 
+	 */
+	static Repository clone(const std::string& url, const std::string& localPath, const CloneOptions& options);
+
+/** @} */
+
 
     /**
      * Retrieve and resolve the reference pointed at by HEAD.
@@ -1125,37 +1218,6 @@ public:
  * @name Checkout
  * @{
  */
-
-	/**
-	 * Checkout option structure.
-	 */
-	struct CheckoutOptions {
-		/** Checkout strategy. See git_checkout_strategy_t, default to GIT_CHECKOUT_NONE. */
-		unsigned int strategy = GIT_CHECKOUT_NONE;
-		/** Don't apply filters like CRLF conversion. Default to false. */
-		bool disableFilters = false;
-		/** Directory mode. Default is 0755. */
-		unsigned int dirMode = 0;
-		/** File mode. Default is 0644 or 0755 as dictated by blob. */
-		unsigned int fileMode = 0;
-		/** File open mode. Default is O_CREAT | O_TRUNC | O_WRONLY. */
-		int fileOpenFlags = 0;
-		/** Notification enabling flags. see `git_checkout_notify_t`. */
-		unsigned int notifyFlags = 0;
-		/** Notification callback. */
-		CheckoutNotifyCallbackFunction notifyCb = CheckoutNotifyCallbackFunction();
-		/** Checkout progress callback. */
-		CheckoutProgressCallbackFunction progressCb = CheckoutProgressCallbackFunction();
-		/** When not empty, array of fnmatch patterns specifying which
-		 *  paths should be taken into account, otherwise all files.  Use
-		 *  GIT_CHECKOUT_DISABLE_PATHSPEC_MATCH to treat as simple list.
-		 */
-		const std::vector<std::string>& paths = std::vector<std::string>();
-		/** Expected content of workdir, defaults to HEAD. */
-		const Tree& baseline = Tree();
-		/** Alternative checkout path to workdir. */
-		const std::string& targetDirectory = std::string();
-	};
 
 	/**
 	 * Updates files in the index and the working tree to match the content of

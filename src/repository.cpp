@@ -138,6 +138,89 @@ Repository Repository::openBare(const std::string& path)
     return Repository(repo);
 }
 
+Repository Repository::clone(const std::string& url, const std::string& localPath, const CloneOptions& options)
+{
+	auto notify_cb = [](git_checkout_notify_t why, const char *path,
+		const git_diff_file *baseline, const git_diff_file *target,
+		const git_diff_file *workdir, void *payload)->int
+	{
+		CheckoutNotifyCallbackFunction* cb = (CheckoutNotifyCallbackFunction*)payload;
+		if(cb!=nullptr)
+			return (*cb)(why, path, DiffFile(baseline), DiffFile(target), DiffFile(workdir)) ? 0 : GIT_EUSER;
+		else
+			return 0;
+	};
+	
+	auto checkout_progress_cb = [](const char *path, size_t completed_steps, size_t total_steps, void *payload)
+	{
+		CheckoutProgressCallbackFunction* cb = (CheckoutProgressCallbackFunction*)payload;
+		if(cb!=nullptr)
+			(*cb)(path, completed_steps, total_steps);
+	};
+	
+	auto transfert_progress_cb = [](const git_transfer_progress *stats, void *payload)->int
+	{
+		TransfertProgressCallbackFunction* callback = (TransfertProgressCallbackFunction*)payload;
+		if(payload!=nullptr)
+			(*callback)(stats->total_objects, stats->indexed_objects, stats->received_objects, stats->received_bytes);
+		return 0;
+	};
+	
+	auto credentail_acquire_cb = [](git_cred **cred, const char *url, const char *username_from_url, unsigned int allowed_types, void *payload)->int
+	{
+		CredentialsAcquireCallbackFunction* callback = (CredentialsAcquireCallbackFunction*)payload;
+		if(payload!=nullptr)
+		{
+			try {
+				git_cred* res = (*callback)(url, username_from_url, allowed_types);
+				*cred = res;
+				return GIT_OK;
+			}catch(Exception& ex){
+				return ex.err();
+			}
+		}
+		return GIT_OK;
+	};
+	
+	git_clone_options opts = {
+		GIT_CLONE_OPTIONS_VERSION,
+		{ // git_checkout_opts
+			GIT_CHECKOUT_OPTS_VERSION,
+			options.checkoutOptions.strategy,
+			options.checkoutOptions.disableFilters ? 1 :  0,
+			options.checkoutOptions.dirMode,
+			options.checkoutOptions.fileMode,
+			options.checkoutOptions.fileOpenFlags,
+			options.checkoutOptions.notifyFlags,
+			notify_cb,
+			(void*)&options.checkoutOptions.notifyCb,
+			checkout_progress_cb,
+			(void*)&options.checkoutOptions.progressCb,
+			{},
+			options.checkoutOptions.baseline.ok() ? options.checkoutOptions.baseline.data() : nullptr,
+			options.checkoutOptions.targetDirectory.c_str()
+		},
+		options.bare,
+		transfert_progress_cb,
+		(void*)&options.fetchProgressCb,
+		options.remoteName.c_str(),
+		options.pushUrl.empty() ? NULL : options.pushUrl.c_str(),
+		options.fetchSpec.empty() ? NULL : options.fetchSpec.c_str(),
+		options.pushSpec.empty() ? NULL : options.pushSpec.c_str(),
+		credentail_acquire_cb,
+		(void*)&options.credentialAcquireCb,
+		options.transportFlags,
+		NULL,//transport
+		NULL,//remote_callbacks
+		options.remoteAutotag,
+		options.checkoutBranch.empty() ? NULL : options.checkoutBranch.c_str()
+	};
+	
+    git_repository *repo = NULL;
+    Exception::git2_assert(git_clone(&repo, url.c_str(), localPath.c_str(), &opts));
+    return Repository(repo);
+}
+
 Reference Repository::head() const
 {
     git_reference *ref = NULL;

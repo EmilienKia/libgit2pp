@@ -54,6 +54,8 @@ libgit2pp_la_SOURCES =  \
 	status.cpp \
 	tag.cpp \
 	tag.hpp \
+	transport.cpp \
+	transport.hpp \
 	tree.cpp \
 	tree.hpp \
 	remote.hpp \
@@ -83,6 +85,7 @@ git2ppinclude_HEADERS = \
 	signature.hpp \
 	status.hpp \
 	tag.hpp \
+	transport.hpp \
 	tree.hpp \
 	remote.hpp
 
