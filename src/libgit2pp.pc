@@ -1,0 +1,11 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: libgit2pp
+Description: C++ git library
+Version: 0.24.0
+Libs: -L${libdir} -lgit2pp
+Cflags: -I${includedir}
+Requires: libgit2
