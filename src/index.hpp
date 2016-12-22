@@ -142,10 +142,20 @@ public:
     /**
      * Update the contents of an existing index object in memory
      * by reading from the hard disk.
+     * 
+     * If force is true, this performs a "hard" read that discards in-memory
+     * changes and always reloads the on-disk index data.
+     * If there is no on-disk version, the index will be cleared.
+     * If force is false, this does a "soft" read that reloads the index data
+     * from disk only if it has changed since the last time it was loaded.
+     * Purely in-memory index data will be untouched.
+     * Be aware: if there are changes on disk,
+     * unwritten in-memory changes are discarded.
      *
+     * @param force if true, always reload, vs. only read if file has changed.
      * @throws Exception
      */
-    void read() const;
+    void read(bool force);
 
     /**
      * Write an existing index object from memory back to disk

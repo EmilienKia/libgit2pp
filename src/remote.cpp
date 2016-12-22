@@ -75,16 +75,16 @@ bool RefSpec::destinationMatches(const std::string& refname)const
 
 std::string RefSpec::transform(const std::string& name)const
 {
-	char buffer[GIT_PATH_MAX];
-	Exception::git2_assert(git_refspec_transform(buffer, GIT_PATH_MAX, constData(), name.c_str()));
-	return std::string(buffer);
+	helper::GitBuffer buffer;
+	Exception::git2_assert(git_refspec_transform(buffer, constData(), name.c_str()));
+	return buffer;
 }
 
 std::string RefSpec::rtransform(const std::string& name)const
 {
-	char buffer[GIT_PATH_MAX];
-	Exception::git2_assert(git_refspec_rtransform(buffer, GIT_PATH_MAX, constData(), name.c_str()));
-	return std::string(buffer);
+	helper::GitBuffer buffer;
+	Exception::git2_assert(git_refspec_rtransform(buffer, constData(), name.c_str()));
+	return buffer;
 }
 
 const git_refspec *RefSpec::constData()const
@@ -107,11 +107,6 @@ Remote::~Remote()
 	   git_remote_free(_remote);
 }
 
-void Remote::save()
-{
-	Exception::git2_assert(git_remote_save(data()));
-}
-
 std::string Remote::name()const
 {
 	return std::string(git_remote_name(data()));
@@ -127,6 +122,7 @@ std::string Remote::pushUrl()const
 	return std::string(git_remote_pushurl(data()));
 }
 
+#if 0 // Removed for upgrading to 0.24.0
 void Remote::setUrl(const std::string& url)
 {
 	Exception::git2_assert(git_remote_set_url(data(), url.c_str()));
@@ -142,6 +138,12 @@ void Remote::addFetch(const std::string& refspec)
 	Exception::git2_assert(git_remote_add_fetch(data(), refspec.c_str()));
 }
 
+void Remote::addPush(const std::string& refspec)
+{
+	Exception::git2_assert(git_remote_add_push(data(), refspec.c_str()));
+}
+#endif // Removed for upgrading to 0.24.0
+
 std::vector<std::string> Remote::getFetchRefspec()
 {
     std::vector<std::string> list;
@@ -150,11 +152,6 @@ std::vector<std::string> Remote::getFetchRefspec()
     helper::push_back(list, &arr);
     git_strarray_free(&arr);
     return list;
-}
-
-void Remote::addPush(const std::string& refspec)
-{
-	Exception::git2_assert(git_remote_add_push(data(), refspec.c_str()));
 }
 
 std::vector<std::string> Remote::getPushRefspec()
@@ -167,11 +164,6 @@ std::vector<std::string> Remote::getPushRefspec()
     return list;
 }
 
-void Remote::clearRefspec()
-{
-	git_remote_clear_refspecs(data());
-}
-
 size_t Remote::refspecCount()const
 {
 	return git_remote_refspec_count(data());
@@ -182,14 +174,16 @@ RefSpec Remote::getRefspec(size_t n)
 	return RefSpec(git_remote_get_refspec(data(), n));
 }
 
+#if 0 // Removed for upgrading to 0.24.0        
 void Remote::removeRefspec(size_t n)
 {
 	Exception::git2_assert(git_remote_remove_refspec(data(), n));
 }
+#endif // Removed for upgrading to 0.24.0        
 
 void Remote::connect(git_direction direction)
 {
-	Exception::git2_assert(git_remote_connect(data(), direction));
+	Exception::git2_assert(git_remote_connect(data(), direction, nullptr, nullptr));
 }
 
 bool Remote::isConnected()
@@ -207,6 +201,7 @@ void Remote::stop()
 	git_remote_stop(data());
 }
 
+#if 0 // Removed for upgrading to 0.24.0
 bool Remote::list(HeadListCallbackFunction callback)
 {
 	auto cb = [](git_remote_head *rhead, void *payload)->int
@@ -260,6 +255,7 @@ void Remote::checkCert(bool check)
 {
 	git_remote_check_cert(data(), check?1:0);
 }
+#endif // Removed for upgrading to 0.24.0
 
 const git_transfer_progress * Remote::stats()
 {
@@ -271,6 +267,7 @@ git_remote_autotag_option_t Remote::autotag()const
 	return git_remote_autotag(data());
 }
 
+#if 0 // Removed for upgrading to 0.24.0
 void Remote::setAutotags(git_remote_autotag_option_t value)
 {
 	git_remote_set_autotag(data(), value);
@@ -294,14 +291,15 @@ int Remote::updateFetchhead()const
 	return git_remote_update_fetchhead(data());
 }
 
-bool Remote::isValidName(const std::string& name)
-{
-	return git_remote_is_valid_name(name.c_str())?1:0;
-}
-
 void Remote::setUpdateFetchhead(int value)
 {
 	git_remote_set_update_fetchhead(data(), value);
+}
+#endif // Removed for upgrading to 0.24.0
+
+bool Remote::isValidName(const std::string& name)
+{
+	return git_remote_is_valid_name(name.c_str())?1:0;
 }
 
 git_remote* Remote::data() const

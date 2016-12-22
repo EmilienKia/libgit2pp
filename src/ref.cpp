@@ -93,24 +93,24 @@ Reference Reference::resolve() const
     return Reference(ref);
 }
 
-Reference Reference::setSymbolicTarget(const std::string& target)
+Reference Reference::setSymbolicTarget(const std::string& target, const std::string& logMessage)
 {
 	git_reference *out;
-    Exception::git2_assert(git_reference_symbolic_set_target(&out, data(), target.c_str()));
+    Exception::git2_assert(git_reference_symbolic_set_target(&out, data(), target.c_str(), logMessage.c_str()));
     return Reference(out);
 }
 
-void Reference::setTarget(const OId& oid)
+void Reference::setTarget(const OId& oid, const std::string& logMessage)
 {
 	git_reference *ref;
-    Exception::git2_assert(git_reference_set_target(&ref, data(), oid.constData()));
+    Exception::git2_assert(git_reference_set_target(&ref, data(), oid.constData(), logMessage.c_str()));
     *this = Reference(ref);
 }
 
-void Reference::rename(const std::string name, bool force)
+void Reference::rename(const std::string name, bool force, const std::string& logMessage)
 {
 	git_reference *ref;
-	Exception::git2_assert(git_reference_rename(&ref, data(), name.c_str(), force?1:0));
+	Exception::git2_assert(git_reference_rename(&ref, data(), name.c_str(), force?1:0, logMessage.c_str()));
     *this = Reference(ref);
 }
 
@@ -120,11 +120,12 @@ void Reference::deleteReference()
     *this = Reference();
 }
 
+#if 0 // Removed for upgrading to 0.24.0
 RefLog Reference::readRefLog()
 {
-	git_reflog *reflog;
-	Exception::git2_assert(git_reflog_read(&reflog, data()));
-	return RefLog(reflog);
+    git_reflog *reflog;
+    Exception::git2_assert(git_reflog_read(&reflog, data()));
+    return RefLog(reflog);
 }
 
 void Reference::renameRefLog(const std::string name)
@@ -136,6 +137,7 @@ void Reference::deleteRefLog()
 {
 	Exception::git2_assert(git_reflog_delete(data()));
 }
+#endif // Removed for upgrading to 0.24.0
 
 bool Reference::isNull() const
 {

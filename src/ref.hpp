@@ -155,19 +155,20 @@ public:
      */
     void setName(const std::string& name);
 
-	/**
-	 * Create a new reference with the same name as the given reference but a
-	 * different symbolic target. The reference must be a symbolic reference,
-	 * otherwise this will fail.
-	 *
-	 * The new reference will be written to disk, overwriting the given reference.
-	 *
-	 * The target name will be checked for validity.
-	 * 
-	 * @param target The new target for the reference
-	 * @return the new reference.
-	 */
-	Reference setSymbolicTarget(const std::string& target);
+    /**
+     * Create a new reference with the same name as the given reference but a
+     * different symbolic target. The reference must be a symbolic reference,
+     * otherwise this will fail.
+     *
+     * The new reference will be written to disk, overwriting the given reference.
+     *
+     * The target name will be checked for validity.
+     * 
+     * @param target The new target for the reference
+     * @param logMessage The one line long message to be appended to the reflog
+     * @return the new reference.
+     */
+    Reference setSymbolicTarget(const std::string& target, const std::string& logMessage = "");
 
     /**
      * Set the OID target of a reference.
@@ -180,46 +181,48 @@ public:
      * to disk.
      *
      * @param target The new target OID for the reference
+     * @param logMessage The one line long message to be appended to the reflog
      * @throws Exception
      */
-    void setTarget(const OId& oid);
+    void setTarget(const OId& oid, const std::string& logMessage = "");
 
-	/**
-	 * Rename an existing reference
-	 *
-	 * This method works for both direct and symbolic references.
-	 * The new name will be checked for validity and may be
-	 * modified into a normalized form.
-	 *
-	 * The reference will be immediately renamed in-memory
-	 * and on disk.
-	 *
-	 * If the `force` flag is not enabled, and there's already
-	 * a reference with the given name, the renaming will fail.
-	 *
-	 * IMPORTANT:
-	 * The user needs to write a proper reflog entry if the
-	 * reflog is enabled for the repository. We only rename
-	 * the reflog if it exists.
-	 *
-	 * @param name The new name for the reference
-	 * @param force Overwrite an existing reference
-	 * @throws Exception
-	 */
-	void rename(const std::string name, bool force = false);
+    /**
+     * Rename an existing reference
+     *
+     * This method works for both direct and symbolic references.
+     * The new name will be checked for validity and may be
+     * modified into a normalized form.
+     *
+     * The reference will be immediately renamed in-memory
+     * and on disk.
+     *
+     * If the `force` flag is not enabled, and there's already
+     * a reference with the given name, the renaming will fail.
+     *
+     * IMPORTANT:
+     * The user needs to write a proper reflog entry if the
+     * reflog is enabled for the repository. We only rename
+     * the reflog if it exists.
+     *
+     * @param name The new name for the reference
+     * @param force Overwrite an existing reference
+     * @param logMessage The one line long message to be appended to the reflog
+     * @throws Exception
+     */
+    void rename(const std::string name, bool force = false, const std::string& logMessage = "");
 
-	/**
-	 * Delete an existing reference
-	 *
-	 * This method works for both direct and symbolic references.
-	 *
-	 * The reference will be immediately removed on disk and from
-	 * memory. The given reference pointer will no longer be valid.
-	 * 
-	 * @throws Exception
-	 */
-	void deleteReference();
-	
+    /**
+     * Delete an existing reference
+     *
+     * This method works for both direct and symbolic references.
+     *
+     * The reference will be immediately removed on disk and from
+     * memory. The given reference pointer will no longer be valid.
+     * 
+     * @throws Exception
+     */
+    void deleteReference();
+
     bool isNull() const;
 
 	/**
@@ -227,11 +230,11 @@ public:
 	 */
 	int compare(const Reference& ref)const;
 
-
+#if 0 // Removed for upgrading to 0.24.0
 	/**
 	 * Read the reflog for the given reference
 	 *
-	 * @return The reflog.
+         * @param name Reference to look up
 	 * @throws Exception
 	 */
 	RefLog readRefLog();
@@ -250,6 +253,7 @@ public:
 	 * @throws Exception
 	 */
 	void deleteRefLog();
+#endif // Removed for upgrading to 0.24.0
 	
 	/**
 	 * Ensure the reference name is well-formed.
@@ -311,54 +315,54 @@ public:
     /**
      * Copy constructor
      */	
-	RefLog(const RefLog& other);
+    RefLog(const RefLog& other);
 
-	/**
-	 * Destructor.
-	 */
-	~RefLog();
+    /**
+     * Destructor.
+     */
+    ~RefLog();
 
-	/**
-	 * Add a new entry to the in-memory reflog.
-	 *
-	 * @param id the OID the reference is now pointing to
-	 * @param committer the signature of the committer
-	 * @param msg the reflog message
-	 */
-	void append(const OId& id, const Signature& commiter, const std::string& msg);
+    /**
+     * Add a new entry to the in-memory reflog.
+     *
+     * @param id the OID the reference is now pointing to
+     * @param committer the signature of the committer
+     * @param msg the reflog message
+     */
+    void append(const OId& id, const Signature& commiter, const std::string& msg);
 
-	/**
-	 * Remove an entry from the reflog by its index.
-	 * 
-	 * To ensure there's no gap in the log history, set rewrite param value to true.
-	 * When deleting entry n, member old_oid of entry n-1 (if any) will
-	 * be updated with the value of member new_oid of entry n+1.
-	 * 
-	 * @param idx the position of the entry to remove.
-	 * Should be greater than or equal to 0 (zero) and less than getEntryCount.
-	 * @param rewrite true to rewrite the history.
-	 */
-	void drop(size_t idx, bool rewrite);
+    /**
+     * Remove an entry from the reflog by its index.
+     * 
+     * To ensure there's no gap in the log history, set rewrite param value to true.
+     * When deleting entry n, member old_oid of entry n-1 (if any) will
+     * be updated with the value of member new_oid of entry n+1.
+     * 
+     * @param idx the position of the entry to remove.
+     * Should be greater than or equal to 0 (zero) and less than getEntryCount.
+     * @param rewrite true to rewrite the history.
+     */
+    void drop(size_t idx, bool rewrite);
 
-	/**
-	 * Write an existing in-memory reflog object back to disk using an atomic file lock.
-	 */
-	void write();
+    /**
+     * Write an existing in-memory reflog object back to disk using an atomic file lock.
+     */
+    void write();
 
-	/**
-	 * Get the number of log entries in a reflog
-	 * 
-     * @return the number of log entries
-	 */
-	unsigned int getEntryCount();
+    /**
+     * Get the number of log entries in a reflog
+     * 
+ * @return the number of log entries
+     */
+    unsigned int getEntryCount();
 
-	/**
-	 * Lookup an entry by its index
-	 *
-	 * @param idx The position to lookup
-	 * @return The entry; NULL if not found
-	 */
-	RefLogEntry* getEntry(size_t idx);
+    /**
+     * Lookup an entry by its index
+     *
+     * @param idx The position to lookup
+     * @return The entry; NULL if not found
+     */
+    RefLogEntry* getEntry(size_t idx);
 };
 
 /**
@@ -375,44 +379,44 @@ public:
     /**
      * Copy constructor
      */	
-	RefLogEntry(const RefLogEntry& entry);
+    RefLogEntry(const RefLogEntry& entry);
 
-	/**
-	 * Destructor.
-	 */
-	~RefLogEntry();
+    /**
+     * Destructor.
+     */
+    ~RefLogEntry();
 
-	/**
-	 * Get the old oid
-	 *
-	 * @return the old oid
-	 */
-	OId getOldOId() const;
+    /**
+     * Get the old oid
+     *
+     * @return the old oid
+     */
+    OId getOldOId() const;
 
-	/**
-	 * Get the new oid
-	 *
-	 * @return the new oid at this time
-	 */
-	OId getNewOId() const;
+    /**
+     * Get the new oid
+     *
+     * @return the new oid at this time
+     */
+    OId getNewOId() const;
 
-	/**
-	 * Get the committer of this entry
-	 *
-	 * @return the committer
-	 */
-	Signature* getCommitter() const;
+    /**
+     * Get the committer of this entry
+     *
+     * @return the committer
+     */
+    Signature* getCommitter() const;
 
-	/**
-	 * Get the log msg
-	 *
-	 * @return the log msg
-	 */
-	std::string getEntryMessage() const;
-	
-	const git_reflog_entry * data()const;
+    /**
+     * Get the log msg
+     *
+     * @return the log msg
+     */
+    std::string getEntryMessage() const;
+
+    const git_reflog_entry * data()const;
 private:
-	const git_reflog_entry *_entry; 
+    const git_reflog_entry *_entry; 
 };
 
 } // namespace git2

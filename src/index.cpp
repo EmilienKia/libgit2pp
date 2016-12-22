@@ -47,7 +47,7 @@ IndexEntry::~IndexEntry()
 
 OId IndexEntry::id() const
 {
-    return OId(&_entry->oid);
+    return OId(&_entry->id);
 }
 
 std::string IndexEntry::path() const
@@ -107,12 +107,12 @@ void Index::setCapabilities(unsigned int caps)
 
 void Index::clear()
 {
-    return git_index_clear(data());
+    git_index_clear(data());
 }
 
-void Index::read() const
+void Index::read(bool force)
 {
-    Exception::git2_assert(git_index_read(data()));
+    Exception::git2_assert(git_index_read(data(), force ? 1 : 0));
 }
 
 void Index::write()

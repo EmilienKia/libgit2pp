@@ -142,6 +142,38 @@ void push_back(StringContainer& container, const git_strarray* array)
 }
 
 
+
+
+struct GitBuffer
+{
+    git_buf buffer;
+    
+    ~GitBuffer()
+    {
+        git_buf_free(&buffer);
+    }
+    
+    operator git_buf*()
+    {
+        return &buffer;
+    }
+    
+    operator std::string() const
+    {
+        if(buffer.ptr != nullptr && buffer.size > 0)
+        {
+            return std::string{buffer.ptr, buffer.size};
+        }
+        else
+        {
+            return {};
+        }
+        
+    }
+    
+};
+
+
 } // namespace helper
 } // namespace git2
 

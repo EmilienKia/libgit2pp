@@ -47,6 +47,8 @@ public:
 
 	~DatabaseBackend();
 
+#if 0 // Removed for upgrading to 0.24.0
+
 	/**
 	 * Create a backend for loose objects.
 	 * 
@@ -55,6 +57,7 @@ public:
 	 * @param doFsync whether to do an fsync() after writing (currently ignored)
 	 */
 	static DatabaseBackend loose(const std::string& objectsDir, int compressionLevel, bool doFsync = false);
+#endif // Removed for upgrading to 0.24.0
 
 	/**
 	 * Create a backend out of a single packfile.

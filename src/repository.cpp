@@ -66,7 +66,6 @@ _Class(other)
 
 std::string Repository::discover(const std::string& startPath, bool acrossFs, const std::list<std::string>& ceilingDirs)
 {
-	std::vector<char> repoPath((size_t)GIT_PATH_MAX, (char)0);
 	std::string joinedCeilingDirs;
 	if(!ceilingDirs.empty())
 	{
@@ -78,10 +77,9 @@ std::string Repository::discover(const std::string& startPath, bool acrossFs, co
 			joinedCeilingDirs += *iter;
 		}
 	}
-	Exception::git2_assert(git_repository_discover(const_cast<char*>(repoPath.data()),
-									  repoPath.size(), startPath.c_str(),
-                                      acrossFs, joinedCeilingDirs.c_str()));
-    return std::string(repoPath.data());
+        helper::GitBuffer repoPath;
+	Exception::git2_assert(git_repository_discover(repoPath, startPath.c_str(), acrossFs, joinedCeilingDirs.c_str()));
+    return repoPath;
 }
 
 Repository Repository::init(const std::string& path, bool isBare)
@@ -138,6 +136,7 @@ Repository Repository::openBare(const std::string& path)
     return Repository(repo);
 }
 
+#if 0 // Removed for upgrading to 0.24.0
 Repository Repository::clone(const std::string& url, const std::string& localPath, const CloneOptions& options)
 {
 	auto notify_cb = [](git_checkout_notify_t why, const char *path,
@@ -220,6 +219,8 @@ Repository Repository::clone(const std::string& url, const std::string& localPat
     Exception::git2_assert(git_clone(&repo, url.c_str(), localPath.c_str(), &opts));
     return Repository(repo);
 }
+#endif // Removed for upgrading to 0.24.0
+
 
 Reference Repository::head() const
 {
@@ -231,11 +232,6 @@ Reference Repository::head() const
 bool Repository::isHeadDetached() const
 {
     return Exception::git2_assert(git_repository_head_detached(data())) == 1;
-}
-
-bool Repository::isHeadOrphan() const
-{
-    return Exception::git2_assert(git_repository_head_orphan(data())) == 1;
 }
 
 bool Repository::isEmpty() const
@@ -345,17 +341,17 @@ Object Repository::lookup(const OId &oid) const
     return Object(object);
 }
 
-Reference Repository::createReference(const std::string& name, const OId& id, bool force)
+Reference Repository::createReference(const std::string& name, const OId& id, bool force, const std::string& logMessage)
 {
     git_reference *ref = NULL;
-    Exception::git2_assert(git_reference_create(&ref, data(), name.c_str(), id.constData(), force?1:0));
+    Exception::git2_assert(git_reference_create(&ref, data(), name.c_str(), id.constData(), force?1:0, logMessage.c_str()));
     return Reference(ref);
 }
 
-Reference Repository::createSymbolicReference(const std::string& name, const std::string& target, bool force)
+Reference Repository::createSymbolicReference(const std::string& name, const std::string& target, bool force, const std::string& logMessage)
 {
 	git_reference *ref;
-	Exception::git2_assert(git_reference_symbolic_create(&ref, data(), name.c_str(), target.c_str(), force?1:0));
+	Exception::git2_assert(git_reference_symbolic_create(&ref, data(), name.c_str(), target.c_str(), force?1:0, logMessage.c_str()));
 	return Reference(ref);
 }
 
@@ -552,9 +548,9 @@ OId Repository::writeIndexTree(Index& index)
 
 std::string Repository::message()const
 {
-	char buffer[4096];
-	Exception::git2_assert(git_repository_message(buffer, 4096, data()));
-	return std::string(buffer);
+	helper::GitBuffer buffer;
+	Exception::git2_assert(git_repository_message(buffer, data()));
+	return buffer;
 }
 
 void Repository::removeMessage()
@@ -638,17 +634,10 @@ Remote* Repository::createRemote(const std::string& name, const std::string& url
 	return new Remote(remote);
 }
 
-Remote* Repository::createMemoryRemote(const std::string& fetch, const std::string& url)
-{
-	git_remote *remote;
-	Exception::git2_assert(git_remote_create_inmemory(&remote, data(), fetch.c_str(), url.c_str()));
-	return new Remote(remote);
-}
-
 Remote* Repository::getRemote(const std::string& name)
 {
 	git_remote *remote;
-	Exception::git2_assert(git_remote_load(&remote, data(), name.c_str()));
+	Exception::git2_assert(git_remote_lookup(&remote, data(), name.c_str()));
 	return new Remote(remote);
 }
 
@@ -664,12 +653,12 @@ std::vector<std::string> Repository::listRemote()
 
 std::string Repository::getBranchUpstreamName(const std::string& canonicalBranchName)
 {
-	char buffer[GIT_PATH_MAX];
-	int res = git_branch_upstream_name(buffer, GIT_PATH_MAX, data(), canonicalBranchName.c_str());
+	helper::GitBuffer buffer;
+	int res = git_branch_upstream_name(buffer, data(), canonicalBranchName.c_str());
 	if(res==GIT_ENOTFOUND)
 		return "";
 	else if(res>0)
-		return std::string(buffer, res-1);
+		return buffer;
 	else
 	{
 		Exception::git2_assert(res);
@@ -679,12 +668,12 @@ std::string Repository::getBranchUpstreamName(const std::string& canonicalBranch
 
 std::string Repository::getBranchRemoteName(const std::string& canonicalBranchName)
 {
-	char buffer[GIT_PATH_MAX];
-	int res = git_branch_remote_name(buffer, GIT_PATH_MAX, data(), canonicalBranchName.c_str());
+	helper::GitBuffer buffer;
+	int res = git_branch_remote_name(buffer, data(), canonicalBranchName.c_str());
 	if(res==GIT_ENOTFOUND)
 		return "";
 	else if(res>0)
-		return std::string(buffer, res-1);
+		return buffer;
 	else
 	{
 		Exception::git2_assert(res);
@@ -723,9 +712,9 @@ bool Repository::isIgnored(const std::string& path)
 	return res!=0;
 }
 
-void Repository::cleanupMerge()
+void Repository::stateCleanup()
 {
-	Exception::git2_assert(git_repository_merge_cleanup(data()));
+	Exception::git2_assert(git_repository_state_cleanup(data()));
 }
 
 OId Repository::hashFile(const std::string& path, git_otype type, const std::string& asPath)
@@ -771,7 +760,7 @@ std::string Repository::getNamespace()
 
 void Repository::reset(Object& target, git_reset_t resetType)
 {
-	Exception::git2_assert(git_reset(data(), target.data(), resetType));
+	Exception::git2_assert(git_reset(data(), target.data(), resetType, nullptr));
 }
 
 void Repository::resetDefault(Object* target, const std::vector<std::string> pathspecs)
@@ -790,6 +779,7 @@ bool Repository::shallow()const
 	return git_repository_is_shallow(data())!=0;
 }
 
+#if 0 // Removed for upgrading to 0.24.0
 DiffList Repository::diffTreeToTree(Tree oldTree, Tree newTree)
 {
 	git_diff_list *diff;
@@ -1175,5 +1165,6 @@ void Repository::stashDrop(size_t index)
 {
 	Exception::git2_assert(git_stash_drop(data(), index));
 }
+#endif // Removed for upgrading to 0.24.0
 
 } // namespace git2

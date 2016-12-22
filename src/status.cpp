@@ -124,6 +124,8 @@ Status StatusEntry::status() const
     return Status(_entry->status);
 }
 
+#if 0 // Removed for upgrading to 0.24.0
+
 DiffDelta StatusEntry::headToIndexDelta()
 {
 	return DiffDelta(_entry->head_to_index);
@@ -133,6 +135,8 @@ DiffDelta StatusEntry::indexToWorkdirDelta()
 {
 	return DiffDelta(_entry->index_to_workdir);
 }
+
+#endif // Removed for upgrading to 0.24.0
 
 std::string StatusEntry::oldPath() const
 {

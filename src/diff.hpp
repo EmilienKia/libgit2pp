@@ -20,6 +20,8 @@
 #ifndef _GIT2PP_DIFF_HPP_
 #define _GIT2PP_DIFF_HPP_
 
+#if 0 // Removed for upgrading to 0.24.0
+
 #include <git2.h>
 
 #include <memory>
@@ -81,10 +83,6 @@ typedef std::function<bool(const DiffDelta& delta, const git_diff_range *range, 
  * of lines of file and hunk headers.
  */
 typedef std::function<bool(const DiffDelta& delta, const git_diff_range *range, char line_origin,const std::string& content)> DiffDataCallbackFunction;
-
-
-
-
 
 /**
  * Description of one side of a diff entry.
@@ -322,6 +320,7 @@ public:
 
 };
 
+
 /**
  * The diff patch is used to store all the text diffs for a delta.
  *
@@ -409,12 +408,12 @@ public:
 
 };
 
-
 // TODO wrap git_diff_similarity_metric
 // TODO wrap misc functions git_diff_blobs git_diff_patch_from_blobs git_diff_blob_to_buffer git_diff_patch_from_blob_and_buffer
- 
 
 
 } // namespace git2
+
+#endif // Removed for upgrading to 0.24.0
 #endif // _GIT2PP_DIFF_HPP_
 

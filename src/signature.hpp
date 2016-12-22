@@ -37,6 +37,7 @@ namespace git2
  * The interface provided by this class is identical to Signature, with additional
  * constructors for creating new signatures.
  */
+#if 0 // Removed for upgrading to 0.24.0
 class SignatureBuilder
 {
 public:
@@ -101,6 +102,7 @@ public:
 private:
     git_signature *_sign;
 };
+#endif // Removed for upgrading to 0.24.0
 
 
 /**
@@ -129,7 +131,9 @@ public:
      * Create a reference to the signature owned by 'other'; this allows SignatureBuilder to
      * be passed as Signature function argument.
      */
+#if 0 // Removed for upgrading to 0.24.0
     Signature(const SignatureBuilder& other);
+#endif // Removed for upgrading to 0.24.0
 
     /**
      * Destroy the reference; does not destroy the underlaying data structure,

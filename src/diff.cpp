@@ -19,6 +19,9 @@
 
 #include "diff.hpp"
 
+#if 0 // Removed for upgrading to 0.24.0
+
+
 #include "exception.hpp"
 #include "oid.hpp"
 #include "repository.hpp"
@@ -34,7 +37,7 @@ namespace git2
 //
 
 DiffFile::DiffFile(const git_diff_file *diff_file):
-_oid(diff_file!=NULL ? &diff_file->oid : NULL),
+_oid(diff_file!=NULL ? &diff_file->id : NULL),
 _path(diff_file!=NULL ? diff_file->path : ""),
 _size(diff_file!=NULL ? diff_file->size : 0),
 _flags(diff_file!=NULL ? diff_file->flags : 0),
@@ -329,3 +332,4 @@ bool DiffPatch::print(DiffDataCallbackFunction callback)
 
 } // namespace git2
 
+#endif // Removed for upgrading to 0.24.0

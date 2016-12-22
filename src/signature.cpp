@@ -27,6 +27,7 @@ namespace git2
 //
 // SignatureBuilder
 //
+#if 0 // Removed for upgrading to 0.24.0
 
 SignatureBuilder::SignatureBuilder(const std::string& name, const std::string& email, time_t dateTime, int offset)
 {
@@ -72,6 +73,7 @@ const git_signature* SignatureBuilder::data() const
 {
     return _sign;
 }
+#endif // Removed for upgrading to 0.24.0
 
 //
 // Signature
@@ -87,10 +89,12 @@ _sign(other.data())
 {
 }
 
+#if 0 // Removed for upgrading to 0.24.0
 Signature::Signature(const SignatureBuilder& other):
 _sign(other.data())
 {
 }
+#endif // Removed for upgrading to 0.24.0
 
 Signature::~Signature()
 {

@@ -109,16 +109,6 @@ public:
     static int64_t parseInt64(const std::string& value);
 
 	/**
-	 * Reload changed config files
-	 *
-	 * A config file may be changed on disk out from under the in-memory
-	 * config object.  This function causes us to look for files that have
-	 * been modified since we last loaded them and refresh the config with
-	 * the latest information.
-	 */
-	void refresh();
-
-	/**
 	 * Add an on-disk config file instance to an existing config
 	 *
 	 * The on-disk file pointed at by `path` will be opened and

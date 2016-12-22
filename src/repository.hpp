@@ -59,9 +59,11 @@ class Signature;
 class StatusList;
 class StatusOptions;
 
+#if 0 // Removed for upgrading to 0.24.0
 
 typedef std::function<bool(git_checkout_notify_t why, const std::string& path, const DiffFile& baseline,
 	const DiffFile& target, const DiffFile& workdir)> CheckoutNotifyCallbackFunction;
+#endif // Removed for upgrading to 0.24.0
 
 typedef std::function<void(const char *path, size_t completedSteps, size_t totalSteps)> CheckoutProgressCallbackFunction;
 
@@ -90,7 +92,9 @@ public:
 		/** Notification enabling flags. see `git_checkout_notify_t`. */
 		unsigned int notifyFlags = 0;
 		/** Notification callback. */
+#if 0 // Removed for upgrading to 0.24.0
 		CheckoutNotifyCallbackFunction notifyCb = CheckoutNotifyCallbackFunction();
+#endif // Removed for upgrading to 0.24.0
 		/** Checkout progress callback. */
 		CheckoutProgressCallbackFunction progressCb = CheckoutProgressCallbackFunction();
 		/** When not empty, array of fnmatch patterns specifying which
@@ -133,8 +137,11 @@ public:
 		
 		/** Callback to be used if credentials are required during the initial fetch. */
 		CredentialsAcquireCallbackFunction credentialAcquireCb;
+                
+#if 0 // Removed for upgrading to 0.24.0
 		/** Flags used to create transport if no transport is provided. */
 		git_transport_flags_t transportFlags;
+#endif // Removed for upgrading to 0.24.0
 		
 		// TODO git_transport *transport
 		// TODO git_remote_callbacks *remote_callbacks
@@ -312,7 +319,9 @@ public:
 	 * HEAD.
 	 * 
 	 */
+#if 0 // Removed for upgrading to 0.24.0
 	static Repository clone(const std::string& url, const std::string& localPath, const CloneOptions& options);
+#endif // Removed for upgrading to 0.24.0
 
 /** @} */
 
@@ -333,16 +342,6 @@ public:
      * @throws Exception
      */
     bool isHeadDetached() const;
-
-    /**
-     * Check if the current branch is an orphan
-     *
-     * An orphan branch is one named from HEAD but which doesn't exist in
-     * the refs namespace, because it doesn't have any commit to point to.
-     *
-     * @throws Exception
-     */
-    bool isHeadOrphan() const;
 
     /**
      * Check if a repository is empty
@@ -491,70 +490,72 @@ public:
      */
     Object lookup(const OId& oid) const;
 
-	/**
-	 * Create a new symbolic reference.
-	 *
-	 * A direct reference (also called an object id reference) refers
-	 * directly to a specific object id (a.k.a. OID or SHA) in the repository.
-	 * The id permanently refers to the object (although the reference itself can be moved).
-	 * For example, in libgit2 the direct ref "refs/tags/v0.17.0" refers
-	 * to OID 5b9fac39d8a76b9139667c26a63e6b3f204b3977.
-	 * 
-	 * The direct reference will be created in the repository and
-	 * written to the disk. The generated reference object must be freed by the user.
-	 * 
-	 * Valid reference names must follow one of two patterns:
-	 *  - Top-level names must contain only capital letters and underscores,
-	 * and must begin and end with a letter. (e.g. "HEAD", "ORIG_HEAD").
-	 *  - Names prefixed with "refs/" can be almost anything.
-	 * You must avoid the characters '~', '^', ':', ' \ ', '?', '[',
-	 * and '*', and the sequences ".." and " @ {" which have special
-	 * meaning to revparse.
-	 * 
-	 * This function will throw an exception if a reference already
-	 * exists with the given name unless force is true,
-	 * in which case it will be overwritten.
-	 * 
-	 * The signature and message for the reflog will be ignored if
-	 * the reference does not belong in the standard set
-	 * (HEAD, branches and remote-tracking branches) and and it does not have a reflog.
+    /**
+     * Create a new symbolic reference.
+     *
+     * A direct reference (also called an object id reference) refers
+     * directly to a specific object id (a.k.a. OID or SHA) in the repository.
+     * The id permanently refers to the object (although the reference itself can be moved).
+     * For example, in libgit2 the direct ref "refs/tags/v0.17.0" refers
+     * to OID 5b9fac39d8a76b9139667c26a63e6b3f204b3977.
+     * 
+     * The direct reference will be created in the repository and
+     * written to the disk. The generated reference object must be freed by the user.
+     * 
+     * Valid reference names must follow one of two patterns:
+     *  - Top-level names must contain only capital letters and underscores,
+     * and must begin and end with a letter. (e.g. "HEAD", "ORIG_HEAD").
+     *  - Names prefixed with "refs/" can be almost anything.
+     * You must avoid the characters '~', '^', ':', ' \ ', '?', '[',
+     * and '*', and the sequences ".." and " @ {" which have special
+     * meaning to revparse.
+     * 
+     * This function will throw an exception if a reference already
+     * exists with the given name unless force is true,
+     * in which case it will be overwritten.
+     * 
+     * The signature and message for the reflog will be ignored if
+     * the reference does not belong in the standard set
+     * (HEAD, branches and remote-tracking branches) and and it does not have a reflog.
      *
      * @param name The name of the reference
      * @param id The object id pointed to by the reference.
      * @param force Overwrite existing references
+     * @param logMessage The one line long message to be appended to the reflog
      * @throws Exception
      */
-    Reference createReference(const std::string& name, const OId& id, bool force);
+    Reference createReference(const std::string& name, const OId& id, bool force, const std::string& logMessage);
 
-	/**
-	 * Create a new symbolic reference.
-	 *
-	 * A symbolic reference is a reference name that refers to another
-	 * reference name.  If the other name moves, the symbolic name will move,
-	 * too.  As a simple example, the "HEAD" reference might refer to
-	 * "refs/heads/master" while on the "master" branch of a repository.
-	 *
-	 * The symbolic reference will be created in the repository and written to
-	 * the disk.  The generated reference object must be freed by the user.
-	 *
-	 * Valid reference names must follow one of two patterns:
-	 *
-	 * 1. Top-level names must contain only capital letters and underscores,
-	 *    and must begin and end with a letter. (e.g. "HEAD", "ORIG_HEAD").
-	 * 2. Names prefixed with "refs/" can be almost anything.  You must avoid
-	 *    the characters '~', '^', ':', '\\', '?', '[', and '*', and the
-	 *    sequences ".." and "@{" which have special meaning to revparse.
-	 *
-	 * This function will return an error if a reference already exists with the
-	 * given name unless `force` is true, in which case it will be overwritten.
-	 *
-	 * @param name Reference name
-	 * @param target Reference target
-	 * @param force True to overwrite existing reference with same name, if any.
-	 * @return Created reference.
+    /**
+     * Create a new symbolic reference.
+     *
+     * A symbolic reference is a reference name that refers to another
+     * reference name.  If the other name moves, the symbolic name will move,
+     * too.  As a simple example, the "HEAD" reference might refer to
+     * "refs/heads/master" while on the "master" branch of a repository.
+     *
+     * The symbolic reference will be created in the repository and written to
+     * the disk.  The generated reference object must be freed by the user.
+     *
+     * Valid reference names must follow one of two patterns:
+     *
+     * 1. Top-level names must contain only capital letters and underscores,
+     *    and must begin and end with a letter. (e.g. "HEAD", "ORIG_HEAD").
+     * 2. Names prefixed with "refs/" can be almost anything.  You must avoid
+     *    the characters '~', '^', ':', '\\', '?', '[', and '*', and the
+     *    sequences ".." and "@{" which have special meaning to revparse.
+     *
+     * This function will return an error if a reference already exists with the
+     * given name unless `force` is true, in which case it will be overwritten.
+     *
+     * @param name Reference name
+     * @param target Reference target
+     * @param force True to overwrite existing reference with same name, if any.
+     * @param logMessage The one line long message to be appended to the reflog
+     * @return Created reference.
      * @throws Exception
-	 */
-	Reference createSymbolicReference(const std::string& name, const std::string& target, bool force);
+     */
+   Reference createSymbolicReference(const std::string& name, const std::string& target, bool force, const std::string& logMessage);
 
     /**
      * Create a new commit in the repository
@@ -829,18 +830,6 @@ public:
 	 * @throws Exception
 	 */
 	Remote* createRemote(const std::string& name, const std::string& url);
-	
-	/**
-	 * Create a remote in memory
-	 *
-	 * Create a remote with the given refspec in memory. You can use
-	 * this when you have a URL instead of a remote's name.  Note that in-memory
-	 * remotes cannot be converted to persisted remotes.
-	 *
-	 * @param fetch the fetch refspec to use for this remote. May be empty for defaults.
-	 * @param url the remote repository's URL
-	 */
-	Remote* createMemoryRemote(const std::string& fetch, const std::string& url);
 
 	/**
 	 * Get the information for a particular remote
@@ -950,10 +939,10 @@ public:
 /** @} */
 
 	/**
-	 * Remove all the metadata associated with an ongoing git merge, including
-	 * MERGE_HEAD, MERGE_MSG, etc.
+	 * Remove all the metadata associated with an ongoing command like merge,
+         * revert, cherry-pick, etc. For example: MERGE_HEAD, MERGE_MSG, etc.
 	 */
-	void cleanupMerge();
+	void stateCleanup();
 
 	// TODO implement git_repository_fetchhead_foreach
 	// TODO implement git_repository_mergehead_foreach
@@ -1082,6 +1071,8 @@ public:
 	 * to a commit which oid will be used as the target of the branch.
 	 *
 	 * @param resetType Kind of reset operation to perform.
+         * 
+         * TODO Add git_checkout_options param, currently to null
 	 */
 	void reset(Object& target, git_reset_t resetType);
 	
@@ -1125,6 +1116,7 @@ public:
 	 * 
 	 * TODO add option parameter description
 	 */
+#if 0 // Removed for upgrading to 0.24.0
 	DiffList diffTreeToTree(Tree oldTree, Tree newTree);
 	DiffList diffTreeToTree(Tree oldTree, Tree newTree,
 			uint32_t flags, uint16_t contextLines = 3, uint16_t interhunkLines = 0,
@@ -1210,6 +1202,7 @@ public:
 			const std::vector<std::string>& pathspec = std::vector<std::string>() , git_off_t max_size = 512*1024*1024,
 			DiffNotifyCallbackFunction notify = DiffNotifyCallbackFunction());
 
+#endif // Removed for upgrading to 0.24.0
 
 
 /** @} */
@@ -1218,6 +1211,7 @@ public:
  * @name Checkout
  * @{
  */
+#if 0 // Removed for upgrading to 0.24.0
 
 	/**
 	 * Updates files in the index and the working tree to match the content of
@@ -1249,14 +1243,14 @@ public:
 	 * the working directory
 	 */
 	void checkoutTree(Object treeish, const CheckoutOptions& options);
-
+#endif // Removed for upgrading to 0.24.0
 /** @} */
 
 /**
  * @name Stash
  * @{
  */
- 
+#if 0 // Removed for upgrading to 0.24.0
 	/**
 	* Save the local modifications to a new stash.
 	* 
@@ -1280,7 +1274,7 @@ public:
 	 * Remove a single stashed state from the stash list.
 	 */
 	void stashDrop(size_t index);
-
+#endif // Removed for upgrading to 0.24.0
 /** @} */
 
 protected:

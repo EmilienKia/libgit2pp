@@ -44,12 +44,15 @@ DatabaseBackend::~DatabaseBackend()
 {
 }
 
+#if 0 // Removed for upgrading to 0.24.0
 DatabaseBackend DatabaseBackend::loose(const std::string& objectsDir, int compressionLevel, bool doFsync)
 {
 	git_odb_backend* dbb;
 	Exception::git2_assert( git_odb_backend_loose(&dbb, objectsDir.c_str(), compressionLevel, doFsync?1:0) );
 	return DatabaseBackend(dbb);
 }
+#endif // Removed for upgrading to 0.24.0
+
 
 DatabaseBackend DatabaseBackend::onePack(const std::string& indexFile)
 {

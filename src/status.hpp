@@ -130,6 +130,8 @@ public:
      */
     Status status() const;
 
+#if 0 // Removed for upgrading to 0.24.0
+
 	/**
 	 * Return the delta between head and index
 	 */
@@ -140,6 +142,8 @@ public:
 	 */
 	DiffDelta indexToWorkdirDelta();
 
+#endif // Removed for upgrading to 0.24.0
+        
     /**
      * Returns the old path if set, otherwise an empty string
      */

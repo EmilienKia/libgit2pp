@@ -135,13 +135,6 @@ public:
 	~Remote();
 
 	/**
-	 * Save a remote to its repository's configuration
-	 *
-	 * @throws Exception
-	 */
-	void save();
-
-	/**
 	 * Get the remote's name
 	 */
 	std::string name()const;
@@ -156,6 +149,7 @@ public:
 	 */
 	std::string pushUrl()const;
 
+#if 0 // Removed for upgrading to 0.24.0        
 	/**
 	 * Set the remote's url
 	 *
@@ -169,6 +163,8 @@ public:
 	 * Existing connections will not be updated.
 	 */
 	void setPushUrl(const std::string& url);
+#endif // Removed for upgrading to 0.24.0
+
 
 	/**
 	 * Get the remote's list of fetch refspecs
@@ -179,13 +175,6 @@ public:
 	 * Get the remote's list of push refspecs
 	 */
 	std::vector<std::string> getPushRefspec();
-
-	/**
-	 * Clear the refspecs
-	 *
-	 * Remove all configured fetch and push refspecs from the remote.
-	 */
-	void clearRefspec();
 	
 	/**
 	 * Get the number of refspecs for a remote
@@ -197,6 +186,7 @@ public:
 	 */
 	RefSpec getRefspec(size_t n);
 	
+#if 0 // Removed for upgrading to 0.24.0        
 	/**
 	 * Remove a refspec from the remote
 	 */
@@ -219,6 +209,7 @@ public:
 	 * @param refspec the new push refspec
 	 */
 	void addPush(const std::string& refspec);
+#endif // Removed for upgrading to 0.24.0
 
 	/**
 	 * Open a connection to a remote
@@ -229,6 +220,7 @@ public:
 	 *
 	 * @param direction whether you want to receive or send data
 	 * @throws Exception
+         * TODO add callback and custom HTTP headers
 	 */
 	void connect(git_direction direction);
 
@@ -256,6 +248,7 @@ public:
 	 */
 	void stop();
 
+#if 0 // Removed for upgrading to 0.24.0
 	/**
 	 * Get a list of refs at the remote
 	 *
@@ -301,6 +294,7 @@ public:
 	 * Choose whether to check the server's certificate (applies to HTTPS only)
 	 */
 	void checkCert(bool check);
+#endif // Removed for upgrading to 0.24.0
 	
 	// TODO implement git_remote_set_cred_acquire_cb
 	// TODO implement git_remote_set_transport
@@ -316,6 +310,7 @@ public:
 	 */
 	git_remote_autotag_option_t autotag()const;
 	
+#if 0 // Removed for upgrading to 0.24.0
 	/**
 	 * Set the tag auto-follow setting
 	 */
@@ -343,6 +338,7 @@ public:
 	 * updated on every fetch.  Set to 0 to disable.
 	 */
 	void setUpdateFetchhead(int value);
+#endif // Removed for upgrading to 0.24.0
 	
 	/**
 	 * Ensure the remote name is well-formed.
