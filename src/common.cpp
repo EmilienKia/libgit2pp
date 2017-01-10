@@ -37,5 +37,6 @@ void setTraceCallback(git_trace_level_t level, TraceCallback cb)
 	Exception::git2_assert(git_trace_set(level, trace_cb));
 }
 
+
 } // namespace git2
 

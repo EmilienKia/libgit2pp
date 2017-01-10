@@ -51,7 +51,7 @@ void setTraceCallback(git_trace_level_t level, TraceCallback cb);
 	
 namespace helper
 {
-
+    
 /**
  * Represents a Git wrapped structure pointer.
  */
@@ -62,15 +62,20 @@ public:
 	typedef Git2PtrWrapper<_Type,_Deleter> _Class;
 	typedef std::shared_ptr<_Type> _PtrType;
 
-	Git2PtrWrapper(){}
-	Git2PtrWrapper(_Type* ptr):_ptr(ptr, _Deleter){} // Todo protect deleter from null pointer
+	Git2PtrWrapper() = default;
+	Git2PtrWrapper(_Type* ptr):_ptr(ptr, _Deleter){}
+        
+        template<class Deleter>
+	Git2PtrWrapper(_Type* ptr, Deleter deleter):_ptr(ptr, deleter){}
+        
+
 	Git2PtrWrapper(const _Class& other):_ptr(other._ptr){}
-	~Git2PtrWrapper(){}
+	~Git2PtrWrapper() = default;
 
 	bool ok()const{return _ptr.get()!=nullptr;}
 	_Type* data() const {return _ptr.get();}
 	_PtrType& ptr() const {return _ptr;}
-
+        
 private:
     _PtrType _ptr;
 };
@@ -141,6 +146,18 @@ void push_back(StringContainer& container, const git_strarray* array)
 	}
 }
 
+/**
+ * Safely construct a std::string from a const char*
+ * @param s Const char* string
+ * @return C++ std::string.
+ */
+inline std::string gitstr(const char* s)
+{
+    if(s==nullptr)
+        return std::string{};
+    else
+        return std::string(s);
+}
 
 
 
