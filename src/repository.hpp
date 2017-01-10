@@ -839,6 +839,14 @@ public:
 	 * @throws Exception
 	 */
 	Remote* getRemote(const std::string& name);
+        
+        /**
+         * Delete an existing persisted remote.
+         * 
+         * @param name	the name of the remove to delete
+	 * @throws Exception
+         */
+        void deleteRemote(const std::string& name);
 
 	/**
 	 * Get a list of the configured remotes for a repo

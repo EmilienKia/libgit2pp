@@ -490,9 +490,10 @@ std::list<std::string> Repository::listReferences() const
 
 bool Repository::foreachReference(std::function<bool(Reference)> callback)
 {
-	int res = git_reference_foreach(data(), [&](git_reference* ref, void* payload)->int{
-			std::function<bool(Reference)>& callback = *(std::function<bool(Reference)>*)payload;
-			return callback(Reference(ref)) ? 1 : 0;
+	int res = git_reference_foreach(data(), [&](git_reference* ref, void* payload)->int
+                {
+                    std::function<bool(Reference)>& callback = *(std::function<bool(Reference)>*)payload;
+                    return callback(Reference::undeletable(ref)) ? 1 : 0;
 		}, (void*)&callback);
 	if (res==GIT_OK)
 		return false;
@@ -639,6 +640,11 @@ Remote* Repository::getRemote(const std::string& name)
 	git_remote *remote;
 	Exception::git2_assert(git_remote_lookup(&remote, data(), name.c_str()));
 	return new Remote(remote);
+}
+
+void Repository::deleteRemote(const std::string& name)
+{
+    Exception::git2_assert(git_remote_delete(data(), name.c_str()));
 }
 
 std::vector<std::string> Repository::listRemote()
