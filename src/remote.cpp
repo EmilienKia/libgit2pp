@@ -97,29 +97,32 @@ const git_refspec *RefSpec::constData()const
 //
 
 Remote::Remote(git_remote *remote):
-_remote(remote)		
+_Class(remote)
+{
+}
+
+Remote::Remote(const Remote& other):
+_Class(other.data())
 {
 }
 
 Remote::~Remote()
 {
-	if(_remote!=NULL)
-	   git_remote_free(_remote);
 }
 
 std::string Remote::name()const
 {
-	return std::string(git_remote_name(data()));
+    return helper::gitstr(git_remote_name(data()));
 }
 
 std::string Remote::url()const
 {
-	return std::string(git_remote_url(data()));
+    return helper::gitstr(git_remote_url(data()));
 }
 
 std::string Remote::pushUrl()const
 {
-	return std::string(git_remote_pushurl(data()));
+    return helper::gitstr(git_remote_pushurl(data()));
 }
 
 #if 0 // Removed for upgrading to 0.24.0
@@ -301,17 +304,6 @@ bool Remote::isValidName(const std::string& name)
 {
 	return git_remote_is_valid_name(name.c_str())?1:0;
 }
-
-git_remote* Remote::data() const
-{
-    return _remote;
-}
-
-const git_remote* Remote::constData() const
-{
-    return _remote;
-}
-
 
 } // namespace git2
 

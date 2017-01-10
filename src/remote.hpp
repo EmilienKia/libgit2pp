@@ -26,6 +26,8 @@
 #include <string>
 #include <vector>
 
+#include "common.hpp"
+
 #include "oid.hpp"
 
 namespace git2
@@ -121,33 +123,39 @@ private:
 /**
  * Represents a Git remote.
  */ 
-class Remote
+class Remote : public helper::Git2PtrWrapper<git_remote, git_remote_free>
 {
 public:
     /**
      * Constructor.
      */
     Remote(git_remote *remote = NULL);
+    
+    /**
+     * Copy constructor; creates a copy of the object, sharing the same underlaying data
+     * structure.
+     */
+    Remote(const Remote& other);
 
-	/**
-	 * Destructor.
-	 */
-	~Remote();
+    /**
+     * Destructor.
+     */
+    ~Remote();
 
-	/**
-	 * Get the remote's name
-	 */
-	std::string name()const;
+    /**
+     * Get the remote's name
+     */
+    std::string name()const;
 
-	/**
-	 * Get the remote's url
-	 */
-	std::string url()const;
+    /**
+     * Get the remote's url
+     */
+    std::string url()const;
 
-	/**
-	 * Get the remote's url for pushing
-	 */
-	std::string pushUrl()const;
+    /**
+     * Get the remote's url for pushing
+     */
+    std::string pushUrl()const;
 
 #if 0 // Removed for upgrading to 0.24.0        
 	/**
@@ -344,11 +352,6 @@ public:
 	 * Ensure the remote name is well-formed.
 	 */
 	static bool isValidName(const std::string& name);
-	
-	git_remote* data() const;
-    const git_remote* constData() const;
-private:
-	git_remote *_remote;
 };
 
 } // namespace git2
