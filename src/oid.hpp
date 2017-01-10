@@ -35,18 +35,18 @@ namespace git2
 class OId
 {
 public:
-	/** Constructor */
-	OId(const git_oid *oid = NULL);
+    /** Constructor */
+    OId(const git_oid *oid = NULL);
 
-	/** Copy constructor */
-	OId(const OId& oid);
+    /** Copy constructor */
+    OId(const OId& oid);
 
-	/** Destructor */
-	~OId();
+    /** Destructor */
+    ~OId();
 
     /**
      * Checks if this is a valid Git OId.
-	 * An OId is invalid if it is empty or 0x0000... (20 byte).
+     * An OId is invalid if it is empty or 0x0000... (20 byte).
      * @return True, if the OId is valid. False if not.
      */
     bool isValid() const;
@@ -55,10 +55,10 @@ public:
     git_oid* data();
     const git_oid* constData() const;
 
-	/**
-	 * Returns the length of the OId as a number of hexadecimal characters.
-	 *
-	 * The full length of a OId is 40, but OId represented by this class may be shorter.
+    /**
+     * Returns the length of the OId as a number of hexadecimal characters.
+     *
+     * The full length of a OId is 40, but OId represented by this class may be shorter.
      */
 	int length() const;
 
@@ -115,12 +115,12 @@ public:
      */
     std::string pathFormat() const;
 
-	/**
-	 * Check is an oid is all zeros.
-	 * 
-	 * @return True if OId is all zeros.
-	 */
-	bool isZero() const;
+    /**
+     * Check is an oid is all zeros.
+     * 
+     * @return True if OId is all zeros.
+     */
+    bool isZero() const;
 	
     /**
      * Parse a hex formatted object id into a OId.
