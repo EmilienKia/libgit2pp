@@ -36,6 +36,16 @@ _Class(ref)
 {
 }
 
+Reference Reference::undeletable(git_reference *ref)
+{
+    return Reference(ref, [](git_reference*){});
+}
+
+Reference::Reference(git_reference *ref, void(*deleter)(git_reference*)):
+_Class(ref, deleter)
+{
+}
+
 Reference::Reference(const Reference& other):
 _Class(other.data())
 {
@@ -68,17 +78,32 @@ bool Reference::isSymbolic() const
 
 bool Reference::isBranch() const
 {
-	return git_reference_is_branch(data()) != 0;
+    return git_reference_is_branch(data()) != 0;
 }
 
 bool Reference::isRemote() const
 {
-	return git_reference_is_remote(data());
+    return git_reference_is_remote(data());
+}
+
+bool Reference::isNote() const
+{
+    return git_reference_is_note(data());
+}
+
+bool Reference::isTag() const
+{
+    return git_reference_is_tag(data());
 }
 
 std::string Reference::name() const
 {
     return std::string(git_reference_name(data()));
+}
+
+std::string Reference::shorthand() const
+{
+    return std::string(git_reference_shorthand(data()));
 }
 
 std::string Reference::symbolicTarget()const

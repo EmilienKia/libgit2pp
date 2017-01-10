@@ -50,6 +50,11 @@ public:
     Reference(git_reference *ref = NULL);
 
     /**
+     * Create a new ref object which underlying object cannot be deleted.
+     */
+    static Reference undeletable(git_reference *ref);
+    
+    /**
      * Copy constructor
      */
     Reference(const Reference& other);
@@ -63,11 +68,11 @@ public:
     
     /**
      * Return the peeled OID target of this reference.
-	 *
-	 * This peeled OID only applies to direct references that point to
-	 * a hard Tag object: it is the result of peeling such Tag.
-	 */
-	OId peeledTarget() const;
+     *
+     * This peeled OID only applies to direct references that point to
+     * a hard Tag object: it is the result of peeling such Tag.
+     */
+    OId peeledTarget() const;
 
     /**
      * Get the full name of a reference
@@ -76,19 +81,29 @@ public:
      */
     std::string name() const;
 
-	/**
-	 * Get full name to the reference pointed to by a symbolic reference.
-	 *
-	 * Only available if the reference is symbolic.
-	 */
-	std::string symbolicTarget()const;
+    /**
+     * Get the reference's short name
+     * 
+     * This will transform the reference name into a name "human-readable" version.
+     * If no shortname is appropriate, it will return the full name.
+     * 
+     * @return The human-readable version of the name
+     */
+    std::string shorthand() const;
+    
+    /**
+     * Get full name to the reference pointed to by a symbolic reference.
+     *
+     * Only available if the reference is symbolic.
+     */
+    std::string symbolicTarget()const;
 
-	/**
-	 * Get the type of a reference.
-	 * 
-	 * Either direct (GIT_REF_OID) or symbolic (GIT_REF_SYMBOLIC)
-	 */
-	git_ref_t type()const;
+    /**
+     * Get the type of a reference.
+     * 
+     * Either direct (GIT_REF_OID) or symbolic (GIT_REF_SYMBOLIC)
+     */
+    git_ref_t type()const;
 
     /**
      * Return true if the reference is direct (i.e. a reference to an OID)
@@ -100,19 +115,34 @@ public:
      */
     bool isSymbolic() const;
 
-	/**
-	 * Check if a reference is a local branch.
-	 * 
+    /**
+     * Check if a reference is a local branch.
+     * 
      * @return true when the reference lives in the refs/heads namespace.
      */
-	bool isBranch() const;
-	
-	/**
-	 * Check if a reference is a remote tracking branch.
-	 * 
+    bool isBranch() const;
+
+    /**
+     * Check if a reference is a remote tracking branch.
+     * 
      * @return true when the reference lives in the refs/remotes namespace.
      */
-	bool isRemote() const;
+    bool isRemote() const;
+    
+    /**
+     * Check if a reference is a note.
+     * 
+     * @return true when the reference lives in the refs/notes namespace; false otherwise.
+     */
+    bool isNote() const;
+    
+    /**
+     * Check if a reference is a tag.
+     * 
+     * @return true when the reference lives in the refs/tags namespace; false otherwise.
+     */
+    bool isTag() const;
+    
 	
     /**
      * Resolve a symbolic reference
@@ -225,10 +255,10 @@ public:
 
     bool isNull() const;
 
-	/**
-	 * Compare two references.
-	 */
-	int compare(const Reference& ref)const;
+    /**
+     * Compare two references.
+     */
+    int compare(const Reference& ref)const;
 
 #if 0 // Removed for upgrading to 0.24.0
 	/**
@@ -255,35 +285,41 @@ public:
 	void deleteRefLog();
 #endif // Removed for upgrading to 0.24.0
 	
-	/**
-	 * Ensure the reference name is well-formed.
-	 * 
-	 * Valid reference names must follow one of two patterns:
-	 *   - Top-level names must contain only capital letters and underscores,
-	 * and must begin and end with a letter. (e.g. "HEAD", "ORIG_HEAD").
-	 *   - Names prefixed with "refs/" can be almost anything.
-	 * You must avoid the characters '~', '^', ':', ' \ ', '?', '[', and '*',
-	 * and the sequences ".." and " @ {" which have special meaning to revparse.
-	 * 
+    /**
+     * Ensure the reference name is well-formed.
+     * 
+     * Valid reference names must follow one of two patterns:
+     *   - Top-level names must contain only capital letters and underscores,
+     * and must begin and end with a letter. (e.g. "HEAD", "ORIG_HEAD").
+     *   - Names prefixed with "refs/" can be almost anything.
+     * You must avoid the characters '~', '^', ':', ' \ ', '?', '[', and '*',
+     * and the sequences ".." and " @ {" which have special meaning to revparse.
+     * 
      * @param name name to be checked.
      * @return true if the reference name is acceptable
      */
-	static bool isValidName(const std::string& name);
+    static bool isValidName(const std::string& name);
 	
-	/**
-	 * Normalize reference name and check validity.
-	 * 
-	 * This will normalize the reference name by removing any leading slash '/' 
-	 * characters and collapsing runs of adjacent slashes between name
-	 * components into a single slash.
-	 * 
-	 * Once normalized, if the reference name is valid, it will be returned.
-	 * 
+    /**
+     * Normalize reference name and check validity.
+     * 
+     * This will normalize the reference name by removing any leading slash '/' 
+     * characters and collapsing runs of adjacent slashes between name
+     * components into a single slash.
+     * 
+     * Once normalized, if the reference name is valid, it will be returned.
+     * 
      * @param name Reference name to be checked.
-	 * @param flags Flags to constrain name validation rules
+     * @param flags Flags to constrain name validation rules
      * @return Normalized name if valid.
      */
-	static std::string normalizeName(const std::string& name, unsigned int flags=GIT_REF_FORMAT_NORMAL);
+    static std::string normalizeName(const std::string& name, unsigned int flags=GIT_REF_FORMAT_NORMAL);
+
+protected:
+    /**
+     * Create an new ref object which cannot be deleted
+     */
+    Reference(git_reference *ref, void(*deleter)(git_reference*));
 
 };
 
