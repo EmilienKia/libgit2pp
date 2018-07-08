@@ -19,8 +19,14 @@
 
 #include "exception.hpp"
 
+#include <git2.h>
+
 namespace git2
 {
+
+Exception::Exception(): Exception(GIT_OK)
+{
+}
 
 Exception::Exception(int err):
 _err(err)

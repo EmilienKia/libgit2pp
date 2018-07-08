@@ -20,8 +20,6 @@
 #ifndef _GIT2PP_DIFF_HPP_
 #define _GIT2PP_DIFF_HPP_
 
-#if 0 // Removed for upgrading to 0.24.0
-
 #include <git2.h>
 
 #include <memory>
@@ -38,7 +36,7 @@ class DiffDelta;
 class DiffList;
 class DiffPatch;
 
-
+#if 0 // Removed for upgrading to 0.24.0
 
 /**
  * Diff notification callback function.
@@ -83,6 +81,9 @@ typedef std::function<bool(const DiffDelta& delta, const git_diff_range *range, 
  * of lines of file and hunk headers.
  */
 typedef std::function<bool(const DiffDelta& delta, const git_diff_range *range, char line_origin,const std::string& content)> DiffDataCallbackFunction;
+
+#endif // Removed for upgrading to 0.24.0
+
 
 /**
  * Description of one side of a diff entry.
@@ -131,6 +132,8 @@ protected:
 	uint32_t _flags;
 	uint16_t _mode;
 };
+
+#if 0 // Removed for upgrading to 0.24.0
 
 
 /**
@@ -412,8 +415,8 @@ public:
 // TODO wrap misc functions git_diff_blobs git_diff_patch_from_blobs git_diff_blob_to_buffer git_diff_patch_from_blob_and_buffer
 
 
+#endif // Removed for upgrading to 0.24.0
 } // namespace git2
 
-#endif // Removed for upgrading to 0.24.0
 #endif // _GIT2PP_DIFF_HPP_
 

@@ -17,17 +17,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
 
+
+
 #ifndef _GIT2PP_COMMON_HPP_
 #define _GIT2PP_COMMON_HPP_
+
+#include <memory>
+#include <functional>
+#include <string>
 
 #include <git2.h>
 #include <git2/trace.h>
 
-#include <memory>
+namespace git2 {
 
-namespace git2
-{
-	
 
 /**
  * @name Traces
@@ -193,6 +196,5 @@ struct GitBuffer
 
 } // namespace helper
 } // namespace git2
-
 #endif // _GIT2PP_COMMON_HPP_
 

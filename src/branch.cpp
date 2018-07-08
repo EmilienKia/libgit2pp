@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.";
  */
-
 #include "branch.hpp"
 
 #include "exception.hpp"
@@ -24,6 +23,7 @@
 #include "repository.hpp"
 #include "ref.hpp"
 #include "signature.hpp"
+
 
 namespace git2
 {
@@ -79,4 +79,3 @@ void Branch::setUpstream(const std::string& upstreamName)
 }
 
 } // namespace git2
-

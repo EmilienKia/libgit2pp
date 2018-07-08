@@ -136,7 +136,6 @@ Repository Repository::openBare(const std::string& path)
     return Repository(repo);
 }
 
-#if 0 // Removed for upgrading to 0.24.0
 Repository Repository::clone(const std::string& url, const std::string& localPath, const CloneOptions& options)
 {
 	auto notify_cb = [](git_checkout_notify_t why, const char *path,
@@ -182,9 +181,9 @@ Repository Repository::clone(const std::string& url, const std::string& localPat
 	};
 	
 	git_clone_options opts = {
-		GIT_CLONE_OPTIONS_VERSION,
-		{ // git_checkout_opts
-			GIT_CHECKOUT_OPTS_VERSION,
+		/* version = */GIT_CLONE_OPTIONS_VERSION,
+		/* checkout_opts = */ {
+			GIT_CHECKOUT_OPTIONS_VERSION,
 			options.checkoutOptions.strategy,
 			options.checkoutOptions.disableFilters ? 1 :  0,
 			options.checkoutOptions.dirMode,
@@ -196,11 +195,18 @@ Repository Repository::clone(const std::string& url, const std::string& localPat
 			checkout_progress_cb,
 			(void*)&options.checkoutOptions.progressCb,
 			{},
-			options.checkoutOptions.baseline.ok() ? options.checkoutOptions.baseline.data() : nullptr,
-			options.checkoutOptions.targetDirectory.c_str()
+			options.checkoutOptions.baseline.ok() ? options.checkoutOptions.baseline.data() : nullptr
+//			options.checkoutOptions.targetDirectory.c_str()
 		},
-		options.bare,
-		transfert_progress_cb,
+		/* fetch_opts = */ {},
+		/* bare = */ options.bare,
+		/* local =  */ GIT_CLONE_LOCAL_AUTO,
+		/* checkout_branch = */ options.checkoutBranch.empty() ? NULL : options.checkoutBranch.c_str(),
+		/* repository_cb = */ NULL,
+		/* repository_cb_payload = */ NULL,
+		/* remote_cb = */ NULL,
+		/* remote_cb_payload = */ NULL
+/*		transfert_progress_cb,
 		(void*)&options.fetchProgressCb,
 		options.remoteName.c_str(),
 		options.pushUrl.empty() ? NULL : options.pushUrl.c_str(),
@@ -212,14 +218,13 @@ Repository Repository::clone(const std::string& url, const std::string& localPat
 		NULL,//transport
 		NULL,//remote_callbacks
 		options.remoteAutotag,
-		options.checkoutBranch.empty() ? NULL : options.checkoutBranch.c_str()
+*/
 	};
 	
     git_repository *repo = NULL;
     Exception::git2_assert(git_clone(&repo, url.c_str(), localPath.c_str(), &opts));
     return Repository(repo);
 }
-#endif // Removed for upgrading to 0.24.0
 
 
 Reference Repository::head() const
@@ -488,13 +493,15 @@ std::list<std::string> Repository::listReferences() const
     return list;
 }
 
+static int git_reference_foreach_proxy(git_reference* ref, void* payload)
+{
+	std::function<bool(Reference)>& callback = *(std::function<bool(Reference)>*)payload;
+	return callback(Reference::undeletable(ref)) ? 1 : 0;
+}
+
 bool Repository::foreachReference(std::function<bool(Reference)> callback)
 {
-	int res = git_reference_foreach(data(), [&](git_reference* ref, void* payload)->int
-                {
-                    std::function<bool(Reference)>& callback = *(std::function<bool(Reference)>*)payload;
-                    return callback(Reference::undeletable(ref)) ? 1 : 0;
-		}, (void*)&callback);
+	int res = git_reference_foreach(data(), git_reference_foreach_proxy, (void*)&callback);
 	if (res==GIT_OK)
 		return false;
 	else if (res==GIT_EUSER)
@@ -503,12 +510,17 @@ bool Repository::foreachReference(std::function<bool(Reference)> callback)
 		Exception::git2_assert(res);
 }
 
+
+static int git_reference_foreach_name_proxy(const char *name, void *payload)
+{
+	std::function<bool(const std::string&)>& callback = *(std::function<bool(const std::string&)>*)payload;
+	return callback(std::string(name)) ? 1 : 0;
+}
+
+
 bool Repository::foreachReferenceName(std::function<bool(const std::string&)> callback)
 {
-	int res = git_reference_foreach_name(data(), [&](const char* name, void* payload)->int{
-			std::function<bool(const std::string&)>& callback = *(std::function<bool(const std::string&)>*)payload;
-			return callback(std::string(name)) ? 1 : 0;
-		}, (void*)&callback);
+	int res = git_reference_foreach_name(data(), git_reference_foreach_name_proxy, (void*)&callback);
 	if (res==GIT_OK)
 		return false;
 	else if (res==GIT_EUSER)

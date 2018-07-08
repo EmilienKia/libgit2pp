@@ -20,13 +20,16 @@
 #ifndef _GIT2PP_REPOSITORY_HPP_
 #define _GIT2PP_REPOSITORY_HPP_
 
-#include <git2.h>
 
+#include <functional>
 #include <list>
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
+
+
+#include <git2.h>
 
 #include "common.hpp"
 
@@ -59,11 +62,9 @@ class Signature;
 class StatusList;
 class StatusOptions;
 
-#if 0 // Removed for upgrading to 0.24.0
 
 typedef std::function<bool(git_checkout_notify_t why, const std::string& path, const DiffFile& baseline,
 	const DiffFile& target, const DiffFile& workdir)> CheckoutNotifyCallbackFunction;
-#endif // Removed for upgrading to 0.24.0
 
 typedef std::function<void(const char *path, size_t completedSteps, size_t totalSteps)> CheckoutProgressCallbackFunction;
 
@@ -92,9 +93,7 @@ public:
 		/** Notification enabling flags. see `git_checkout_notify_t`. */
 		unsigned int notifyFlags = 0;
 		/** Notification callback. */
-#if 0 // Removed for upgrading to 0.24.0
 		CheckoutNotifyCallbackFunction notifyCb = CheckoutNotifyCallbackFunction();
-#endif // Removed for upgrading to 0.24.0
 		/** Checkout progress callback. */
 		CheckoutProgressCallbackFunction progressCb = CheckoutProgressCallbackFunction();
 		/** When not empty, array of fnmatch patterns specifying which
@@ -116,8 +115,30 @@ public:
 		 *   set the `checkout_strategy` to GIT_CHECKOUT_DEFAULT.
 		 */
 		CheckoutOptions checkoutOptions;
+
+		// TODO Add fetch options.
+		/** Options which control the fetch, including callbacks.
+		 * The callbacks are used for reporting fetch progress,
+		 * and for acquiring credentials in the event they are needed.
+		 */
+		// FetchOptions fetchOptions;
+
 		/** True to create bare repo, false to create a standard repo. */
 		bool bare = false;
+
+		// TODO Add Option for local cloning.
+		// git_clone_local_t 	local
+
+		/** The name of the branch to checkout.
+		 * Empty means use the remote's default branch.
+		 */
+		std::string checkoutBranch;
+
+		// NOTE Do not provide creation callback for now
+		// repository_cb and repository_cb_payload
+
+#if 0 // Removed for upgrading to 0.26.0		
+
 		/** Callback for fetch progress. Be aware that
 		 *  this is called inline with network and indexing operations,
 		 *  so performance may be affected.
@@ -151,6 +172,7 @@ public:
 		git_remote_autotag_option_t remoteAutotag;
 		/** Name of the branch to checkout. Empty means use the remote's HEAD. */
 		std::string checkoutBranch;
+#endif // Removed for upgrading to 0.26.0		
 	};
 
 
@@ -319,10 +341,7 @@ public:
 	 * HEAD.
 	 * 
 	 */
-#if 0 // Removed for upgrading to 0.24.0
 	static Repository clone(const std::string& url, const std::string& localPath, const CloneOptions& options);
-#endif // Removed for upgrading to 0.24.0
-
 /** @} */
 
 

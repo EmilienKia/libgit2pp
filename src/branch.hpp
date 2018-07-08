@@ -20,11 +20,8 @@
 #ifndef _GIT2PP_BRANCH_HPP_
 #define _GIT2PP_BRANCH_HPP_
 
-#include <git2.h>
-
-#include <memory>
-
 #include "common.hpp"
+
 
 namespace git2
 {

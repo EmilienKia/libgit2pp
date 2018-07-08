@@ -19,9 +19,6 @@
 
 #include "diff.hpp"
 
-#if 0 // Removed for upgrading to 0.24.0
-
-
 #include "exception.hpp"
 #include "oid.hpp"
 #include "repository.hpp"
@@ -53,6 +50,9 @@ _flags(other._flags),
 _mode(other._mode)
 {
 }
+
+#if 0 // Removed for upgrading to 0.24.0
+
 
 //
 // DiffDelta
@@ -329,7 +329,6 @@ bool DiffPatch::print(DiffDataCallbackFunction callback)
 	else
 		Exception::git2_assert(res);
 }
+#endif // Removed for upgrading to 0.24.0
 
 } // namespace git2
-
-#endif // Removed for upgrading to 0.24.0

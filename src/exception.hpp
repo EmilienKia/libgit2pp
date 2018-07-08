@@ -20,18 +20,17 @@
 #ifndef _GIT2PP_EXCEPTION_HPP_
 #define _GIT2PP_EXCEPTION_HPP_
 
-#include <git2.h>
-
 #include <exception>
 #include <string>
 
 namespace git2
 {
 
-	class Exception: public std::exception 
+	class Exception : public std::exception 
 	{
 	public:
-		Exception(int err = GIT_OK);
+		Exception();
+		Exception(int err);
 		~Exception() throw();
 		const char *what() const throw();
 		std::string message() const throw();

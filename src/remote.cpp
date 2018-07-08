@@ -186,7 +186,7 @@ void Remote::removeRefspec(size_t n)
 
 void Remote::connect(git_direction direction)
 {
-	Exception::git2_assert(git_remote_connect(data(), direction, nullptr, nullptr));
+	Exception::git2_assert(git_remote_connect(data(), direction, nullptr, nullptr, nullptr));
 }
 
 bool Remote::isConnected()
